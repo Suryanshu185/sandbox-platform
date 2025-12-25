@@ -19,6 +19,7 @@ interface DbEnvironmentVersion {
   image: string | null;
   dockerfile: string | null;
   build_files: Record<string, string>;
+  command: string[] | null;
   cpu: number;
   memory: number;
   ports: PortMapping[];
@@ -39,6 +40,7 @@ class EnvironmentService {
       image?: string;
       dockerfile?: string;
       buildFiles?: Record<string, string>;
+      command?: string[];
       cpu?: number;
       memory?: number;
       ports?: PortMapping[];
@@ -78,14 +80,15 @@ class EnvironmentService {
 
       // Create initial version
       const versionResult = await client.query<DbEnvironmentVersion>(
-        `INSERT INTO environment_versions (environment_id, version, image, dockerfile, build_files, cpu, memory, ports, env, secrets, mounts)
-         VALUES ($1, 1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         RETURNING id, environment_id, version, image, dockerfile, build_files, cpu, memory, ports, env, secrets, mounts, created_at`,
+        `INSERT INTO environment_versions (environment_id, version, image, dockerfile, build_files, command, cpu, memory, ports, env, secrets, mounts)
+         VALUES ($1, 1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING id, environment_id, version, image, dockerfile, build_files, command, cpu, memory, ports, env, secrets, mounts, created_at`,
         [
           envRow.id,
           data.image || null,
           data.dockerfile || null,
           JSON.stringify(data.buildFiles ?? {}),
+          data.command ? JSON.stringify(data.command) : null,
           data.cpu ?? 2,
           data.memory ?? 512,
           JSON.stringify(data.ports ?? []),
@@ -352,7 +355,7 @@ class EnvironmentService {
   // Get environment version
   async getVersion(versionId: string): Promise<EnvironmentVersion | null> {
     const row = await queryOne<DbEnvironmentVersion>(
-      `SELECT id, environment_id, version, image, cpu, memory, ports, env, secrets, mounts, created_at
+      `SELECT id, environment_id, version, image, command, cpu, memory, ports, env, secrets, mounts, created_at
        FROM environment_versions WHERE id = $1`,
       [versionId]
     );
@@ -394,6 +397,7 @@ class EnvironmentService {
       image: row.image || '',
       dockerfile: row.dockerfile || undefined,
       buildFiles: row.build_files ?? {},
+      command: row.command ?? undefined,
       cpu: Number(row.cpu),
       memory: row.memory,
       ports: row.ports ?? [],

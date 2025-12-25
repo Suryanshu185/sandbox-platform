@@ -15,6 +15,7 @@ export interface ContainerConfig {
   ports: PortMapping[];
   env: Record<string, string>;
   labels?: Record<string, string>;
+  command?: string[];
 }
 
 export interface ContainerInfo {
@@ -103,6 +104,7 @@ export async function createContainer(
   const container = await docker.createContainer({
     name: config.name,
     Image: config.image,
+    Cmd: config.command,
     Env: envArray,
     ExposedPorts: exposedPorts,
     Labels: {

@@ -148,6 +148,7 @@ class SandboxService {
       image: string;
       dockerfile?: string;
       buildFiles?: Record<string, string>;
+      command?: string[];
       cpu: number;
       memory: number;
       env: Record<string, string>;
@@ -198,6 +199,7 @@ class SandboxService {
           memory: version.memory,
           ports: sandbox.ports,
           env: containerEnv,
+          command: version.command,
           labels: {
             'sandbox-id': sandboxId,
             'user-id': userId,

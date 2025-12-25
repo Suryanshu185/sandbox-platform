@@ -120,6 +120,16 @@ export async function migrate(): Promise<void> {
       END IF;
     END $$;
 
+    -- Add command column if it doesn't exist (migration)
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'environment_versions' AND column_name = 'command'
+      ) THEN
+        ALTER TABLE environment_versions ADD COLUMN command JSONB DEFAULT NULL;
+      END IF;
+    END $$;
+
     -- Add foreign key for current_version_id after environment_versions exists
     DO $$ BEGIN
       IF NOT EXISTS (

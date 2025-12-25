@@ -36,6 +36,7 @@ export interface EnvironmentVersion {
   image: string;
   dockerfile?: string;
   buildFiles?: Record<string, string>;
+  command?: string[];
   cpu: number;
   memory: number;
   ports: PortMapping[];
@@ -117,6 +118,7 @@ export const CreateEnvironmentSchema = z.object({
   image: z.string().min(1).max(500).regex(/^[a-z0-9][a-z0-9._\-/]*(:[\w][\w.\-]*)?$/i, 'Invalid Docker image format').optional(),
   dockerfile: z.string().min(1).max(50000).optional(), // Max 50KB Dockerfile
   buildFiles: z.record(z.string()).optional(), // Additional files for build context (filename -> content)
+  command: z.array(z.string()).optional(), // Override container CMD
   cpu: z.number().min(0.25).max(4).default(2),
   memory: z.number().int().min(128).max(2048).default(512),
   ports: z.array(PortMappingSchema).max(10).default([]),
@@ -131,6 +133,7 @@ export const UpdateEnvironmentSchema = z.object({
   image: z.string().min(1).max(500).regex(/^[a-z0-9][a-z0-9._\-/]*(:[\w][\w.\-]*)?$/i).optional(),
   dockerfile: z.string().min(1).max(50000).optional(),
   buildFiles: z.record(z.string()).optional(),
+  command: z.array(z.string()).optional(),
   cpu: z.number().min(0.25).max(4).optional(),
   memory: z.number().int().min(128).max(2048).optional(),
   ports: z.array(PortMappingSchema).max(10).optional(),

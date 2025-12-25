@@ -10,6 +10,7 @@ interface EnvironmentFormData {
   memory: number;
   ports: PortMapping[];
   env: Record<string, string>;
+  command?: string[];
 }
 
 interface EnvironmentFormProps {
@@ -39,6 +40,7 @@ export function EnvironmentForm({
       .map(([k, v]) => `${k}=${v}`)
       .join('\n')
   );
+  const [commandStr, setCommandStr] = useState(initialData?.command?.join(' ') ?? '');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +75,8 @@ export function EnvironmentForm({
           env[key] = value;
         });
 
-      await onSubmit({ name, image, cpu, memory, ports, env });
+      const command = commandStr.trim() ? commandStr.trim().split(/\s+/) : undefined;
+      await onSubmit({ name, image, cpu, memory, ports, env, command });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -103,6 +106,13 @@ export function EnvironmentForm({
         onChange={(e) => setImage(e.target.value)}
         placeholder="nginx:alpine"
         required
+      />
+
+      <Input
+        label="Command (optional)"
+        value={commandStr}
+        onChange={(e) => setCommandStr(e.target.value)}
+        placeholder="sleep infinity"
       />
 
       <div className="grid grid-cols-2 gap-4">

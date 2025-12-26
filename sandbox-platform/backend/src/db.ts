@@ -1,39 +1,49 @@
-import { Pool, PoolClient } from 'pg';
-import logger from './logger.js';
+import { Pool, PoolClient } from "pg";
+import logger from "./logger.js";
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/sandbox_platform',
+  connectionString:
+    process.env.DATABASE_URL ||
+    "postgresql://postgres:postgres@localhost:5432/sandbox_platform",
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
 
-pool.on('error', (err) => {
-  logger.error({ err }, 'Unexpected database pool error');
+pool.on("error", (err) => {
+  logger.error({ err }, "Unexpected database pool error");
 });
 
 export async function query<T>(text: string, params?: unknown[]): Promise<T[]> {
   const start = Date.now();
   const result = await pool.query(text, params);
   const duration = Date.now() - start;
-  logger.debug({ query: text, duration, rows: result.rowCount }, 'Database query executed');
+  logger.debug(
+    { query: text, duration, rows: result.rowCount },
+    "Database query executed",
+  );
   return result.rows as T[];
 }
 
-export async function queryOne<T>(text: string, params?: unknown[]): Promise<T | null> {
+export async function queryOne<T>(
+  text: string,
+  params?: unknown[],
+): Promise<T | null> {
   const rows = await query<T>(text, params);
   return rows[0] ?? null;
 }
 
-export async function transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
+export async function transaction<T>(
+  callback: (client: PoolClient) => Promise<T>,
+): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
     const result = await callback(client);
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     return result;
   } catch (e) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     throw e;
   } finally {
     client.release();
@@ -42,7 +52,7 @@ export async function transaction<T>(callback: (client: PoolClient) => Promise<T
 
 export async function healthCheck(): Promise<boolean> {
   try {
-    await pool.query('SELECT 1');
+    await pool.query("SELECT 1");
     return true;
   } catch {
     return false;
@@ -50,7 +60,7 @@ export async function healthCheck(): Promise<boolean> {
 }
 
 export async function migrate(): Promise<void> {
-  logger.info('Running database migrations...');
+  logger.info("Running database migrations...");
 
   const migrations = `
     -- Users table
@@ -212,7 +222,7 @@ export async function migrate(): Promise<void> {
   `;
 
   await pool.query(migrations);
-  logger.info('Database migrations completed successfully');
+  logger.info("Database migrations completed successfully");
 }
 
 export async function close(): Promise<void> {
@@ -222,14 +232,14 @@ export async function close(): Promise<void> {
 export { pool };
 
 // Run migrations if called directly
-if (process.argv[2] === 'migrate') {
+if (process.argv[2] === "migrate") {
   migrate()
     .then(() => {
-      logger.info('Migrations complete');
+      logger.info("Migrations complete");
       process.exit(0);
     })
     .catch((err) => {
-      logger.error({ err }, 'Migration failed');
+      logger.error({ err }, "Migration failed");
       process.exit(1);
     });
 }

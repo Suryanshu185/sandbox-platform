@@ -1,9 +1,14 @@
-import nacl from 'tweetnacl';
-import { encodeBase64, decodeBase64, encodeUTF8, decodeUTF8 } from 'tweetnacl-util';
-import logger from '../logger.js';
+import nacl from "tweetnacl";
+import {
+  encodeBase64,
+  decodeBase64,
+  encodeUTF8,
+  decodeUTF8,
+} from "tweetnacl-util";
+import logger from "../logger.js";
 
 // Master key should be 32 bytes (256 bits) for secretbox
-const MASTER_KEY_ENV = 'SECRETS_MASTER_KEY';
+const MASTER_KEY_ENV = "SECRETS_MASTER_KEY";
 
 class SecretsService {
   private masterKey: Uint8Array | null = null;
@@ -17,23 +22,27 @@ class SecretsService {
 
     if (!keyBase64) {
       // Generate a new key for development
-      if (process.env.NODE_ENV !== 'production') {
+      if (process.env.NODE_ENV !== "production") {
         this.masterKey = nacl.randomBytes(nacl.secretbox.keyLength);
         logger.warn(
           { generatedKey: encodeBase64(this.masterKey) },
-          'No SECRETS_MASTER_KEY set, generated temporary key. Set this in production!'
+          "No SECRETS_MASTER_KEY set, generated temporary key. Set this in production!",
         );
       } else {
-        throw new Error('SECRETS_MASTER_KEY must be set in production');
+        throw new Error("SECRETS_MASTER_KEY must be set in production");
       }
     } else {
       try {
         this.masterKey = decodeBase64(keyBase64);
         if (this.masterKey.length !== nacl.secretbox.keyLength) {
-          throw new Error(`Master key must be ${nacl.secretbox.keyLength} bytes`);
+          throw new Error(
+            `Master key must be ${nacl.secretbox.keyLength} bytes`,
+          );
         }
       } catch (err) {
-        throw new Error('Invalid SECRETS_MASTER_KEY format. Must be base64 encoded 32 bytes.');
+        throw new Error(
+          "Invalid SECRETS_MASTER_KEY format. Must be base64 encoded 32 bytes.",
+        );
       }
     }
   }
@@ -47,7 +56,7 @@ class SecretsService {
   // Encrypt a secret value
   encrypt(plaintext: string): string {
     if (!this.masterKey) {
-      throw new Error('Secrets service not initialized');
+      throw new Error("Secrets service not initialized");
     }
 
     // Generate a random nonce
@@ -68,7 +77,7 @@ class SecretsService {
   // Decrypt a secret value
   decrypt(encrypted: string): string {
     if (!this.masterKey) {
-      throw new Error('Secrets service not initialized');
+      throw new Error("Secrets service not initialized");
     }
 
     try {
@@ -82,13 +91,13 @@ class SecretsService {
       const plaintext = nacl.secretbox.open(ciphertext, nonce, this.masterKey);
 
       if (!plaintext) {
-        throw new Error('Decryption failed - invalid ciphertext or key');
+        throw new Error("Decryption failed - invalid ciphertext or key");
       }
 
       return encodeUTF8(plaintext);
     } catch (err) {
-      logger.error({ err }, 'Failed to decrypt secret');
-      throw new Error('Failed to decrypt secret');
+      logger.error({ err }, "Failed to decrypt secret");
+      throw new Error("Failed to decrypt secret");
     }
   }
 

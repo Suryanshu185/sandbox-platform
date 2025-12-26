@@ -1,13 +1,18 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Lock, Trash2 } from 'lucide-react';
-import { useEnvironment, useUpdateEnvironment, useSetSecret, useDeleteEnvironment } from '../hooks/useEnvironments';
-import { useCreateSandbox } from '../hooks/useSandboxes';
-import { Button } from '../components/Button';
-import { Card, CardHeader } from '../components/Card';
-import { Input } from '../components/Input';
-import { EnvironmentForm } from '../components/EnvironmentForm';
-import { Badge } from '../components/Badge';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, Plus, Lock, Trash2 } from "lucide-react";
+import {
+  useEnvironment,
+  useUpdateEnvironment,
+  useSetSecret,
+  useDeleteEnvironment,
+} from "../hooks/useEnvironments";
+import { useCreateSandbox } from "../hooks/useSandboxes";
+import { Button } from "../components/Button";
+import { Card, CardHeader } from "../components/Card";
+import { Input } from "../components/Input";
+import { EnvironmentForm } from "../components/EnvironmentForm";
+import { Badge } from "../components/Badge";
 
 export function EnvironmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,8 +25,8 @@ export function EnvironmentDetailPage() {
 
   const [showEdit, setShowEdit] = useState(false);
   const [showAddSecret, setShowAddSecret] = useState(false);
-  const [secretKey, setSecretKey] = useState('');
-  const [secretValue, setSecretValue] = useState('');
+  const [secretKey, setSecretKey] = useState("");
+  const [secretValue, setSecretValue] = useState("");
 
   if (isLoading) {
     return (
@@ -39,7 +44,9 @@ export function EnvironmentDetailPage() {
     );
   }
 
-  const handleUpdate = async (data: Parameters<typeof updateEnv.mutateAsync>[0]['data']) => {
+  const handleUpdate = async (
+    data: Parameters<typeof updateEnv.mutateAsync>[0]["data"],
+  ) => {
     await updateEnv.mutateAsync({ id: environment.id, data });
     setShowEdit(false);
   };
@@ -51,27 +58,29 @@ export function EnvironmentDetailPage() {
       key: secretKey,
       value: secretValue,
     });
-    setSecretKey('');
-    setSecretValue('');
+    setSecretKey("");
+    setSecretValue("");
     setShowAddSecret(false);
   };
 
   const handleCreateSandbox = async () => {
-    const sandbox = await createSandbox.mutateAsync({ environmentId: environment.id });
+    const sandbox = await createSandbox.mutateAsync({
+      environmentId: environment.id,
+    });
     navigate(`/sandboxes/${sandbox.id}`);
   };
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this environment?')) {
+    if (confirm("Are you sure you want to delete this environment?")) {
       await deleteEnv.mutateAsync(environment.id);
-      navigate('/');
+      navigate("/");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
@@ -79,21 +88,33 @@ export function EnvironmentDetailPage() {
         <Card className="mb-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{environment.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {environment.name}
+              </h1>
               {environment.version && (
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="info">Version {environment.version.version}</Badge>
-                  <span className="text-sm text-gray-500 font-mono">{environment.version.image}</span>
+                  <Badge variant="info">
+                    Version {environment.version.version}
+                  </Badge>
+                  <span className="text-sm text-gray-500 font-mono">
+                    {environment.version.image}
+                  </span>
                 </div>
               )}
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleCreateSandbox} isLoading={createSandbox.isPending}>
+              <Button
+                onClick={handleCreateSandbox}
+                isLoading={createSandbox.isPending}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Sandbox
               </Button>
-              <Button variant="secondary" onClick={() => setShowEdit(!showEdit)}>
-                {showEdit ? 'Cancel' : 'Edit'}
+              <Button
+                variant="secondary"
+                onClick={() => setShowEdit(!showEdit)}
+              >
+                {showEdit ? "Cancel" : "Edit"}
               </Button>
               <Button variant="danger" onClick={handleDelete}>
                 <Trash2 className="w-4 h-4" />
@@ -138,7 +159,9 @@ export function EnvironmentDetailPage() {
 
               {environment.version.ports.length > 0 && (
                 <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Port Mappings</h4>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">
+                    Port Mappings
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {environment.version.ports.map((port, i) => (
                       <Badge key={i} variant="default">
@@ -151,14 +174,18 @@ export function EnvironmentDetailPage() {
 
               {Object.keys(environment.version.env).length > 0 && (
                 <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Environment Variables</h4>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">
+                    Environment Variables
+                  </h4>
                   <div className="bg-gray-900 rounded-md p-3 font-mono text-sm text-gray-100">
-                    {Object.entries(environment.version.env).map(([key, value]) => (
-                      <div key={key}>
-                        <span className="text-blue-400">{key}</span>=
-                        <span className="text-green-400">{value}</span>
-                      </div>
-                    ))}
+                    {Object.entries(environment.version.env).map(
+                      ([key, value]) => (
+                        <div key={key}>
+                          <span className="text-blue-400">{key}</span>=
+                          <span className="text-green-400">{value}</span>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
@@ -170,7 +197,10 @@ export function EnvironmentDetailPage() {
                 title="Secrets"
                 description="Encrypted at rest, injected at runtime"
                 action={
-                  <Button size="sm" onClick={() => setShowAddSecret(!showAddSecret)}>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddSecret(!showAddSecret)}
+                  >
                     <Plus className="w-4 h-4 mr-1" />
                     Add Secret
                   </Button>
@@ -178,7 +208,10 @@ export function EnvironmentDetailPage() {
               />
 
               {showAddSecret && (
-                <form onSubmit={handleAddSecret} className="mb-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                <form
+                  onSubmit={handleAddSecret}
+                  className="mb-4 p-4 bg-gray-50 rounded-lg space-y-3"
+                >
                   <Input
                     label="Secret Key (UPPER_SNAKE_CASE)"
                     value={secretKey}
@@ -196,10 +229,19 @@ export function EnvironmentDetailPage() {
                     required
                   />
                   <div className="flex gap-2">
-                    <Button type="submit" size="sm" isLoading={setSecret.isPending}>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      isLoading={setSecret.isPending}
+                    >
                       Save Secret
                     </Button>
-                    <Button type="button" size="sm" variant="secondary" onClick={() => setShowAddSecret(false)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setShowAddSecret(false)}
+                    >
                       Cancel
                     </Button>
                   </div>

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Button } from './Button';
-import { Input, TextArea } from './Input';
-import type { PortMapping } from '../types';
+import { useState } from "react";
+import { Button } from "./Button";
+import { Input, TextArea } from "./Input";
+import type { PortMapping } from "../types";
 
 interface EnvironmentFormData {
   name: string;
@@ -18,7 +18,7 @@ interface EnvironmentFormProps {
   onSubmit: (data: EnvironmentFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
 }
 
 export function EnvironmentForm({
@@ -26,21 +26,23 @@ export function EnvironmentForm({
   onSubmit,
   onCancel,
   isLoading,
-  mode = 'create',
+  mode = "create",
 }: EnvironmentFormProps) {
-  const [name, setName] = useState(initialData?.name ?? '');
-  const [image, setImage] = useState(initialData?.image ?? '');
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [image, setImage] = useState(initialData?.image ?? "");
   const [cpu, setCpu] = useState(initialData?.cpu ?? 2);
   const [memory, setMemory] = useState(initialData?.memory ?? 512);
   const [portsStr, setPortsStr] = useState(
-    initialData?.ports?.map((p) => `${p.container}:${p.host}`).join('\n') ?? ''
+    initialData?.ports?.map((p) => `${p.container}:${p.host}`).join("\n") ?? "",
   );
   const [envStr, setEnvStr] = useState(
     Object.entries(initialData?.env ?? {})
       .map(([k, v]) => `${k}=${v}`)
-      .join('\n')
+      .join("\n"),
   );
-  const [commandStr, setCommandStr] = useState(initialData?.command?.join(' ') ?? '');
+  const [commandStr, setCommandStr] = useState(
+    initialData?.command?.join(" ") ?? "",
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,10 +52,12 @@ export function EnvironmentForm({
     try {
       // Parse ports
       const ports: PortMapping[] = portsStr
-        .split('\n')
+        .split("\n")
         .filter((line) => line.trim())
         .map((line) => {
-          const [container, host] = line.split(':').map((p) => parseInt(p.trim(), 10));
+          const [container, host] = line
+            .split(":")
+            .map((p) => parseInt(p.trim(), 10));
           if (isNaN(container!) || isNaN(host!)) {
             throw new Error(`Invalid port mapping: ${line}`);
           }
@@ -63,10 +67,10 @@ export function EnvironmentForm({
       // Parse env
       const env: Record<string, string> = {};
       envStr
-        .split('\n')
+        .split("\n")
         .filter((line) => line.trim())
         .forEach((line) => {
-          const idx = line.indexOf('=');
+          const idx = line.indexOf("=");
           if (idx === -1) {
             throw new Error(`Invalid env var: ${line}`);
           }
@@ -75,10 +79,12 @@ export function EnvironmentForm({
           env[key] = value;
         });
 
-      const command = commandStr.trim() ? commandStr.trim().split(/\s+/) : undefined;
+      const command = commandStr.trim()
+        ? commandStr.trim().split(/\s+/)
+        : undefined;
       await onSubmit({ name, image, cpu, memory, ports, env, command });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
 
@@ -90,7 +96,7 @@ export function EnvironmentForm({
         </div>
       )}
 
-      {mode === 'create' && (
+      {mode === "create" && (
         <Input
           label="Name"
           value={name}
@@ -157,7 +163,7 @@ export function EnvironmentForm({
           Cancel
         </Button>
         <Button type="submit" isLoading={isLoading}>
-          {mode === 'create' ? 'Create Environment' : 'Update Environment'}
+          {mode === "create" ? "Create Environment" : "Update Environment"}
         </Button>
       </div>
     </form>

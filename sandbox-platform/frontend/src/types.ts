@@ -40,8 +40,19 @@ export interface Environment {
   updatedAt: string;
 }
 
-export type SandboxStatus = 'pending' | 'running' | 'stopped' | 'error' | 'expired';
-export type SandboxPhase = 'creating' | 'starting' | 'healthy' | 'stopping' | 'stopped' | 'failed';
+export type SandboxStatus =
+  | "pending"
+  | "running"
+  | "stopped"
+  | "error"
+  | "expired";
+export type SandboxPhase =
+  | "creating"
+  | "starting"
+  | "healthy"
+  | "stopping"
+  | "stopped"
+  | "failed";
 
 export interface Endpoint {
   port: number;
@@ -67,7 +78,7 @@ export interface Sandbox {
 }
 
 export interface LogEntry {
-  type: 'stdout' | 'stderr';
+  type: "stdout" | "stderr";
   text: string;
   timestamp: string;
 }

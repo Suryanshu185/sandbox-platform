@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Database models
 export interface User {
@@ -51,8 +51,19 @@ export interface PortMapping {
   host: number;
 }
 
-export type SandboxStatus = 'pending' | 'running' | 'stopped' | 'error' | 'expired';
-export type SandboxPhase = 'creating' | 'starting' | 'healthy' | 'stopping' | 'stopped' | 'failed';
+export type SandboxStatus =
+  | "pending"
+  | "running"
+  | "stopped"
+  | "error"
+  | "expired";
+export type SandboxPhase =
+  | "creating"
+  | "starting"
+  | "healthy"
+  | "stopping"
+  | "stopped"
+  | "failed";
 
 export interface Sandbox {
   id: string;
@@ -75,7 +86,7 @@ export interface Sandbox {
 export interface SandboxLog {
   id: string;
   sandboxId: string;
-  type: 'stdout' | 'stderr';
+  type: "stdout" | "stderr";
   text: string;
   timestamp: Date;
 }
@@ -84,7 +95,7 @@ export interface AuditLog {
   id: string;
   userId: string;
   action: string;
-  resourceType: 'environment' | 'sandbox' | 'api_key' | 'user';
+  resourceType: "environment" | "sandbox" | "api_key" | "user";
   resourceId: string;
   metadata: Record<string, unknown>;
   ipAddress: string | null;
@@ -112,25 +123,39 @@ export const PortMappingSchema = z.object({
   host: z.number().int().min(1024).max(65535),
 });
 
-export const CreateEnvironmentSchema = z.object({
-  name: z.string().min(1).max(100),
-  // Either image OR dockerfile must be provided
-  image: z.string().min(1).max(500).regex(/^[a-z0-9][a-z0-9._\-/]*(:[\w][\w.\-]*)?$/i, 'Invalid Docker image format').optional(),
-  dockerfile: z.string().min(1).max(50000).optional(), // Max 50KB Dockerfile
-  buildFiles: z.record(z.string()).optional(), // Additional files for build context (filename -> content)
-  command: z.array(z.string()).optional(), // Override container CMD
-  cpu: z.number().min(0.25).max(4).default(2),
-  memory: z.number().int().min(128).max(2048).default(512),
-  ports: z.array(PortMappingSchema).max(10).default([]),
-  env: z.record(z.string()).default({}),
-  mounts: z.record(z.string()).default({}), // container_path -> volume_name (no host mounts)
-}).refine(
-  (data) => data.image || data.dockerfile,
-  { message: 'Either image or dockerfile must be provided' }
-);
+export const CreateEnvironmentSchema = z
+  .object({
+    name: z.string().min(1).max(100),
+    // Either image OR dockerfile must be provided
+    image: z
+      .string()
+      .min(1)
+      .max(500)
+      .regex(
+        /^[a-z0-9][a-z0-9._\-/]*(:[\w][\w.\-]*)?$/i,
+        "Invalid Docker image format",
+      )
+      .optional(),
+    dockerfile: z.string().min(1).max(50000).optional(), // Max 50KB Dockerfile
+    buildFiles: z.record(z.string()).optional(), // Additional files for build context (filename -> content)
+    command: z.array(z.string()).optional(), // Override container CMD
+    cpu: z.number().min(0.25).max(4).default(2),
+    memory: z.number().int().min(128).max(2048).default(512),
+    ports: z.array(PortMappingSchema).max(10).default([]),
+    env: z.record(z.string()).default({}),
+    mounts: z.record(z.string()).default({}), // container_path -> volume_name (no host mounts)
+  })
+  .refine((data) => data.image || data.dockerfile, {
+    message: "Either image or dockerfile must be provided",
+  });
 
 export const UpdateEnvironmentSchema = z.object({
-  image: z.string().min(1).max(500).regex(/^[a-z0-9][a-z0-9._\-/]*(:[\w][\w.\-]*)?$/i).optional(),
+  image: z
+    .string()
+    .min(1)
+    .max(500)
+    .regex(/^[a-z0-9][a-z0-9._\-/]*(:[\w][\w.\-]*)?$/i)
+    .optional(),
   dockerfile: z.string().min(1).max(50000).optional(),
   buildFiles: z.record(z.string()).optional(),
   command: z.array(z.string()).optional(),
@@ -142,7 +167,11 @@ export const UpdateEnvironmentSchema = z.object({
 });
 
 export const CreateSecretSchema = z.object({
-  key: z.string().min(1).max(100).regex(/^[A-Z_][A-Z0-9_]*$/, 'Secret key must be UPPER_SNAKE_CASE'),
+  key: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[A-Z_][A-Z0-9_]*$/, "Secret key must be UPPER_SNAKE_CASE"),
   value: z.string().min(1).max(10000),
 });
 
@@ -150,19 +179,28 @@ export const CreateSandboxSchema = z.object({
   environmentId: z.string().uuid(),
   environmentVersionId: z.string().uuid().optional(),
   name: z.string().min(1).max(100).optional(),
-  ttlSeconds: z.number().int().min(60).max(86400 * 7).optional(), // max 7 days
-  overrides: z.object({
-    env: z.record(z.string()).optional(),
-    ports: z.array(PortMappingSchema).optional(),
-  }).optional(),
+  ttlSeconds: z
+    .number()
+    .int()
+    .min(60)
+    .max(86400 * 7)
+    .optional(), // max 7 days
+  overrides: z
+    .object({
+      env: z.record(z.string()).optional(),
+      ports: z.array(PortMappingSchema).optional(),
+    })
+    .optional(),
 });
 
 export const ReplicateSandboxSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  overrides: z.object({
-    env: z.record(z.string()).optional(),
-    ports: z.array(PortMappingSchema).optional(),
-  }).optional(),
+  overrides: z
+    .object({
+      env: z.record(z.string()).optional(),
+      ports: z.array(PortMappingSchema).optional(),
+    })
+    .optional(),
 });
 
 // API response types
@@ -203,13 +241,13 @@ export interface JwtPayload {
 
 // WebSocket message types
 export interface LogMessage {
-  type: 'stdout' | 'stderr';
+  type: "stdout" | "stderr";
   text: string;
   timestamp: string;
 }
 
 export interface WsMessage {
-  event: 'log' | 'status' | 'error';
+  event: "log" | "status" | "error";
   data: LogMessage | { status: SandboxStatus } | { message: string };
 }
 

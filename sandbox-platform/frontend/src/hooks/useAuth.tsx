@@ -1,6 +1,13 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import api from '../api';
-import type { User, AuthState } from '../types';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import api from "../api";
+import type { User, AuthState } from "../types";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -11,7 +18,7 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const TOKEN_KEY = 'sandbox_platform_token';
+const TOKEN_KEY = "sandbox_platform_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -26,7 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       api.setToken(savedToken);
 
       // Verify token is still valid
-      api.getMe()
+      api
+        .getMe()
         .then((user) => {
           setUser(user);
         })
@@ -87,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

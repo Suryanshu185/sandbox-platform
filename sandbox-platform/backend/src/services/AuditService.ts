@@ -1,7 +1,7 @@
-import { query } from '../db.js';
-import logger from '../logger.js';
+import { query } from "../db.js";
+import logger from "../logger.js";
 
-type ResourceType = 'environment' | 'sandbox' | 'api_key' | 'user';
+type ResourceType = "environment" | "sandbox" | "api_key" | "user";
 
 interface AuditEntry {
   userId: string;
@@ -27,7 +27,7 @@ class AuditService {
           JSON.stringify(entry.metadata ?? {}),
           entry.ipAddress ?? null,
           entry.userAgent ?? null,
-        ]
+        ],
       );
 
       logger.debug(
@@ -37,59 +37,78 @@ class AuditService {
           resourceType: entry.resourceType,
           resourceId: entry.resourceId,
         },
-        'Audit log recorded'
+        "Audit log recorded",
       );
     } catch (err) {
       // Don't fail the request if audit logging fails
-      logger.error({ err, entry }, 'Failed to record audit log');
+      logger.error({ err, entry }, "Failed to record audit log");
     }
   }
 
   // Convenience methods for common actions
-  async logEnvironmentCreated(userId: string, environmentId: string, metadata?: Record<string, unknown>): Promise<void> {
+  async logEnvironmentCreated(
+    userId: string,
+    environmentId: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'environment.created',
-      resourceType: 'environment',
+      action: "environment.created",
+      resourceType: "environment",
       resourceId: environmentId,
       metadata,
     });
   }
 
-  async logEnvironmentUpdated(userId: string, environmentId: string, metadata?: Record<string, unknown>): Promise<void> {
+  async logEnvironmentUpdated(
+    userId: string,
+    environmentId: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'environment.updated',
-      resourceType: 'environment',
+      action: "environment.updated",
+      resourceType: "environment",
       resourceId: environmentId,
       metadata,
     });
   }
 
-  async logEnvironmentDeleted(userId: string, environmentId: string): Promise<void> {
+  async logEnvironmentDeleted(
+    userId: string,
+    environmentId: string,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'environment.deleted',
-      resourceType: 'environment',
+      action: "environment.deleted",
+      resourceType: "environment",
       resourceId: environmentId,
     });
   }
 
-  async logSecretSet(userId: string, environmentId: string, secretKey: string): Promise<void> {
+  async logSecretSet(
+    userId: string,
+    environmentId: string,
+    secretKey: string,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'secret.set',
-      resourceType: 'environment',
+      action: "secret.set",
+      resourceType: "environment",
       resourceId: environmentId,
       metadata: { secretKey },
     });
   }
 
-  async logSandboxCreated(userId: string, sandboxId: string, metadata?: Record<string, unknown>): Promise<void> {
+  async logSandboxCreated(
+    userId: string,
+    sandboxId: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.created',
-      resourceType: 'sandbox',
+      action: "sandbox.created",
+      resourceType: "sandbox",
       resourceId: sandboxId,
       metadata,
     });
@@ -98,8 +117,8 @@ class AuditService {
   async logSandboxStarted(userId: string, sandboxId: string): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.started',
-      resourceType: 'sandbox',
+      action: "sandbox.started",
+      resourceType: "sandbox",
       resourceId: sandboxId,
     });
   }
@@ -107,8 +126,8 @@ class AuditService {
   async logSandboxStopped(userId: string, sandboxId: string): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.stopped',
-      resourceType: 'sandbox',
+      action: "sandbox.stopped",
+      resourceType: "sandbox",
       resourceId: sandboxId,
     });
   }
@@ -116,8 +135,8 @@ class AuditService {
   async logSandboxRestarted(userId: string, sandboxId: string): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.restarted',
-      resourceType: 'sandbox',
+      action: "sandbox.restarted",
+      resourceType: "sandbox",
       resourceId: sandboxId,
     });
   }
@@ -125,37 +144,49 @@ class AuditService {
   async logSandboxDestroyed(userId: string, sandboxId: string): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.destroyed',
-      resourceType: 'sandbox',
+      action: "sandbox.destroyed",
+      resourceType: "sandbox",
       resourceId: sandboxId,
     });
   }
 
-  async logSandboxReplicated(userId: string, sandboxId: string, newSandboxId: string): Promise<void> {
+  async logSandboxReplicated(
+    userId: string,
+    sandboxId: string,
+    newSandboxId: string,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.replicated',
-      resourceType: 'sandbox',
+      action: "sandbox.replicated",
+      resourceType: "sandbox",
       resourceId: sandboxId,
       metadata: { newSandboxId },
     });
   }
 
-  async logSandboxExec(userId: string, sandboxId: string, command: string[]): Promise<void> {
+  async logSandboxExec(
+    userId: string,
+    sandboxId: string,
+    command: string[],
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'sandbox.exec',
-      resourceType: 'sandbox',
+      action: "sandbox.exec",
+      resourceType: "sandbox",
       resourceId: sandboxId,
-      metadata: { command: command.join(' ') },
+      metadata: { command: command.join(" ") },
     });
   }
 
-  async logApiKeyCreated(userId: string, apiKeyId: string, keyPrefix: string): Promise<void> {
+  async logApiKeyCreated(
+    userId: string,
+    apiKeyId: string,
+    keyPrefix: string,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'api_key.created',
-      resourceType: 'api_key',
+      action: "api_key.created",
+      resourceType: "api_key",
       resourceId: apiKeyId,
       metadata: { keyPrefix },
     });
@@ -164,8 +195,8 @@ class AuditService {
   async logApiKeyRevoked(userId: string, apiKeyId: string): Promise<void> {
     await this.log({
       userId,
-      action: 'api_key.revoked',
-      resourceType: 'api_key',
+      action: "api_key.revoked",
+      resourceType: "api_key",
       resourceId: apiKeyId,
     });
   }
@@ -173,18 +204,22 @@ class AuditService {
   async logUserCreated(userId: string, email: string): Promise<void> {
     await this.log({
       userId,
-      action: 'user.created',
-      resourceType: 'user',
+      action: "user.created",
+      resourceType: "user",
       resourceId: userId,
       metadata: { email },
     });
   }
 
-  async logUserLogin(userId: string, ipAddress?: string, userAgent?: string): Promise<void> {
+  async logUserLogin(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
     await this.log({
       userId,
-      action: 'user.login',
-      resourceType: 'user',
+      action: "user.login",
+      resourceType: "user",
       resourceId: userId,
       ipAddress,
       userAgent,

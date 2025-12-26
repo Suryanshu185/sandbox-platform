@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import clsx from 'clsx';
-import { useSandboxLogs } from '../hooks/useSandboxes';
+import { useEffect, useRef } from "react";
+import clsx from "clsx";
+import { useSandboxLogs } from "../hooks/useSandboxes";
 
 interface LogViewerProps {
   sandboxId: string;
@@ -8,7 +8,11 @@ interface LogViewerProps {
   maxHeight?: string;
 }
 
-export function LogViewer({ sandboxId, className, maxHeight = '400px' }: LogViewerProps) {
+export function LogViewer({
+  sandboxId,
+  className,
+  maxHeight = "400px",
+}: LogViewerProps) {
   const { logs, isConnected, clearLogs } = useSandboxLogs(sandboxId);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
@@ -29,12 +33,17 @@ export function LogViewer({ sandboxId, className, maxHeight = '400px' }: LogView
   };
 
   return (
-    <div className={clsx('flex flex-col', className)}>
+    <div className={clsx("flex flex-col", className)}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className={clsx('w-2 h-2 rounded-full', isConnected ? 'bg-green-500' : 'bg-gray-400')} />
+          <span
+            className={clsx(
+              "w-2 h-2 rounded-full",
+              isConnected ? "bg-green-500" : "bg-gray-400",
+            )}
+          />
           <span className="text-xs text-gray-500">
-            {isConnected ? 'Connected' : 'Disconnected'}
+            {isConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
         <button
@@ -57,16 +66,21 @@ export function LogViewer({ sandboxId, className, maxHeight = '400px' }: LogView
           logs.map((log, index) => (
             <div
               key={`${log.timestamp}-${index}`}
-              className={clsx('whitespace-pre-wrap break-all', {
-                'text-red-400': log.type === 'stderr',
+              className={clsx("whitespace-pre-wrap break-all", {
+                "text-red-400": log.type === "stderr",
               })}
             >
               <span className="text-gray-500">
                 [{new Date(log.timestamp).toLocaleTimeString()}]
-              </span>{' '}
-              <span className={clsx('font-medium', log.type === 'stderr' ? 'text-red-500' : 'text-green-500')}>
+              </span>{" "}
+              <span
+                className={clsx(
+                  "font-medium",
+                  log.type === "stderr" ? "text-red-500" : "text-green-500",
+                )}
+              >
                 [{log.type}]
-              </span>{' '}
+              </span>{" "}
               {log.text}
             </div>
           ))

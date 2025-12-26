@@ -1,17 +1,17 @@
-import pino from 'pino';
+import pino from "pino";
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === "production";
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL || "info",
   transport: isProduction
     ? undefined
     : {
-        target: 'pino-pretty',
+        target: "pino-pretty",
         options: {
           colorize: true,
-          translateTime: 'SYS:standard',
-          ignore: 'pid,hostname',
+          translateTime: "SYS:standard",
+          ignore: "pid,hostname",
         },
       },
   formatters: {
@@ -19,29 +19,32 @@ export const logger = pino({
   },
   redact: {
     paths: [
-      'password',
-      'passwordHash',
-      'apiKey',
-      'keyHash',
-      'authorization',
-      'secret',
-      'secrets.*',
-      '*.password',
-      '*.secret',
-      '*.apiKey',
-      'req.headers.authorization',
-      'env.SECRET_*',
+      "password",
+      "passwordHash",
+      "apiKey",
+      "keyHash",
+      "authorization",
+      "secret",
+      "secrets.*",
+      "*.password",
+      "*.secret",
+      "*.apiKey",
+      "req.headers.authorization",
+      "env.SECRET_*",
     ],
-    censor: '[REDACTED]',
+    censor: "[REDACTED]",
   },
   base: {
-    service: 'sandbox-platform',
-    version: process.env.npm_package_version || '1.0.0',
+    service: "sandbox-platform",
+    version: process.env.npm_package_version || "1.0.0",
   },
 });
 
 // Child logger factory with trace ID
-export function createRequestLogger(traceId: string, extra?: Record<string, unknown>) {
+export function createRequestLogger(
+  traceId: string,
+  extra?: Record<string, unknown>,
+) {
   return logger.child({ traceId, ...extra });
 }
 
@@ -60,7 +63,7 @@ export function redactSecrets(text: string): string {
 
   let redacted = text;
   for (const pattern of patterns) {
-    redacted = redacted.replace(pattern, '[REDACTED]');
+    redacted = redacted.replace(pattern, "[REDACTED]");
   }
   return redacted;
 }

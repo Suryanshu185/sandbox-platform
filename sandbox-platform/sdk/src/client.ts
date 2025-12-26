@@ -11,16 +11,16 @@ import type {
   LogEntry,
   ContainerMetrics,
   ExecResult,
-} from './types';
+} from "./types";
 
 export class SandboxApiError extends Error {
   constructor(
     public code: string,
     message: string,
-    public details?: Record<string, unknown>
+    public details?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'SandboxApiError';
+    this.name = "SandboxApiError";
   }
 }
 
@@ -30,14 +30,14 @@ export class SandboxClient {
   private timeout: number;
 
   constructor(config: SandboxClientConfig) {
-    this.baseUrl = config.baseUrl.replace(/\/$/, '');
+    this.baseUrl = config.baseUrl.replace(/\/$/, "");
     this.apiKey = config.apiKey;
     this.timeout = config.timeout ?? 30000;
   }
 
   private async request<T>(
     path: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -47,8 +47,8 @@ export class SandboxClient {
         ...options,
         signal: controller.signal,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
           ...options.headers,
         },
       });
@@ -57,9 +57,9 @@ export class SandboxClient {
 
       if (!data.success) {
         throw new SandboxApiError(
-          data.error?.code ?? 'UNKNOWN_ERROR',
-          data.error?.message ?? 'An unknown error occurred',
-          data.error?.details
+          data.error?.code ?? "UNKNOWN_ERROR",
+          data.error?.message ?? "An unknown error occurred",
+          data.error?.details,
         );
       }
 
@@ -76,9 +76,11 @@ export class SandboxClient {
   /**
    * Create a new environment
    */
-  async createEnvironment(params: CreateEnvironmentParams): Promise<Environment> {
-    return this.request('/environments', {
-      method: 'POST',
+  async createEnvironment(
+    params: CreateEnvironmentParams,
+  ): Promise<Environment> {
+    return this.request("/environments", {
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -87,7 +89,7 @@ export class SandboxClient {
    * List all environments
    */
   async listEnvironments(): Promise<Environment[]> {
-    return this.request('/environments');
+    return this.request("/environments");
   }
 
   /**
@@ -100,9 +102,12 @@ export class SandboxClient {
   /**
    * Update an environment (creates a new version)
    */
-  async updateEnvironment(id: string, params: UpdateEnvironmentParams): Promise<Environment> {
+  async updateEnvironment(
+    id: string,
+    params: UpdateEnvironmentParams,
+  ): Promise<Environment> {
     return this.request(`/environments/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params),
     });
   }
@@ -111,15 +116,19 @@ export class SandboxClient {
    * Delete an environment
    */
   async deleteEnvironment(id: string): Promise<void> {
-    await this.request(`/environments/${id}`, { method: 'DELETE' });
+    await this.request(`/environments/${id}`, { method: "DELETE" });
   }
 
   /**
    * Set a secret on an environment
    */
-  async setSecret(environmentId: string, key: string, value: string): Promise<void> {
+  async setSecret(
+    environmentId: string,
+    key: string,
+    value: string,
+  ): Promise<void> {
     await this.request(`/environments/${environmentId}/secrets`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ key, value }),
     });
   }
@@ -129,7 +138,7 @@ export class SandboxClient {
    */
   async deleteSecret(environmentId: string, key: string): Promise<void> {
     await this.request(`/environments/${environmentId}/secrets/${key}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -141,8 +150,8 @@ export class SandboxClient {
    * Create a new sandbox
    */
   async createSandbox(params: CreateSandboxParams): Promise<Sandbox> {
-    return this.request('/sandboxes', {
-      method: 'POST',
+    return this.request("/sandboxes", {
+      method: "POST",
       body: JSON.stringify(params),
     });
   }
@@ -152,11 +161,12 @@ export class SandboxClient {
    */
   async listSandboxes(params?: ListSandboxesParams): Promise<Sandbox[]> {
     const queryParams = new URLSearchParams();
-    if (params?.status) queryParams.set('status', params.status);
-    if (params?.environmentId) queryParams.set('environmentId', params.environmentId);
+    if (params?.status) queryParams.set("status", params.status);
+    if (params?.environmentId)
+      queryParams.set("environmentId", params.environmentId);
 
     const query = queryParams.toString();
-    return this.request(`/sandboxes${query ? `?${query}` : ''}`);
+    return this.request(`/sandboxes${query ? `?${query}` : ""}`);
   }
 
   /**
@@ -170,36 +180,39 @@ export class SandboxClient {
    * Start a stopped sandbox
    */
   async startSandbox(id: string): Promise<Sandbox> {
-    return this.request(`/sandboxes/${id}/start`, { method: 'POST' });
+    return this.request(`/sandboxes/${id}/start`, { method: "POST" });
   }
 
   /**
    * Stop a running sandbox
    */
   async stopSandbox(id: string): Promise<Sandbox> {
-    return this.request(`/sandboxes/${id}/stop`, { method: 'POST' });
+    return this.request(`/sandboxes/${id}/stop`, { method: "POST" });
   }
 
   /**
    * Restart a sandbox
    */
   async restartSandbox(id: string): Promise<Sandbox> {
-    return this.request(`/sandboxes/${id}/restart`, { method: 'POST' });
+    return this.request(`/sandboxes/${id}/restart`, { method: "POST" });
   }
 
   /**
    * Destroy a sandbox permanently
    */
   async destroySandbox(id: string): Promise<void> {
-    await this.request(`/sandboxes/${id}`, { method: 'DELETE' });
+    await this.request(`/sandboxes/${id}`, { method: "DELETE" });
   }
 
   /**
    * Replicate (clone) a sandbox
    */
-  async replicateSandbox(id: string, params?: ReplicateSandboxParams): Promise<Sandbox> {
+  async replicateSandbox(
+    id: string,
+    params?: ReplicateSandboxParams,
+  ): Promise<Sandbox> {
     return this.request(`/sandboxes/${id}/replicate`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(params ?? {}),
     });
   }
@@ -223,7 +236,7 @@ export class SandboxClient {
    */
   async exec(id: string, command: string[]): Promise<ExecResult> {
     return this.request(`/sandboxes/${id}/exec`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ command }),
     });
   }
@@ -237,8 +250,8 @@ export class SandboxClient {
    */
   async waitForStatus(
     id: string,
-    targetStatus: Sandbox['status'],
-    options: { timeout?: number; pollInterval?: number } = {}
+    targetStatus: Sandbox["status"],
+    options: { timeout?: number; pollInterval?: number } = {},
   ): Promise<Sandbox> {
     const { timeout = 60000, pollInterval = 1000 } = options;
     const startTime = Date.now();
@@ -250,14 +263,20 @@ export class SandboxClient {
         return sandbox;
       }
 
-      if (sandbox.status === 'error') {
-        throw new SandboxApiError('SANDBOX_ERROR', 'Sandbox entered error state');
+      if (sandbox.status === "error") {
+        throw new SandboxApiError(
+          "SANDBOX_ERROR",
+          "Sandbox entered error state",
+        );
       }
 
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
 
-    throw new SandboxApiError('TIMEOUT', `Timed out waiting for sandbox to reach ${targetStatus} status`);
+    throw new SandboxApiError(
+      "TIMEOUT",
+      `Timed out waiting for sandbox to reach ${targetStatus} status`,
+    );
   }
 
   /**
@@ -265,9 +284,9 @@ export class SandboxClient {
    */
   async createAndWaitForRunning(
     params: CreateSandboxParams,
-    waitOptions?: { timeout?: number; pollInterval?: number }
+    waitOptions?: { timeout?: number; pollInterval?: number },
   ): Promise<Sandbox> {
     const sandbox = await this.createSandbox(params);
-    return this.waitForStatus(sandbox.id, 'running', waitOptions);
+    return this.waitForStatus(sandbox.id, "running", waitOptions);
   }
 }

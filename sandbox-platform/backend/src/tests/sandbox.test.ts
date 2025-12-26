@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock dependencies
-vi.mock('../db.js', () => ({
+vi.mock("../db.js", () => ({
   query: vi.fn(),
   queryOne: vi.fn(),
   transaction: vi.fn(),
 }));
 
-vi.mock('../docker.js', () => ({
+vi.mock("../docker.js", () => ({
   createContainer: vi.fn(),
   startContainer: vi.fn(),
   stopContainer: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('../docker.js', () => ({
   streamLogs: vi.fn(),
 }));
 
-vi.mock('../services/EnvironmentService.js', () => ({
+vi.mock("../services/EnvironmentService.js", () => ({
   environmentService: {
     getEnvironment: vi.fn(),
     getVersion: vi.fn(),
@@ -26,39 +26,39 @@ vi.mock('../services/EnvironmentService.js', () => ({
   NotFoundError: class NotFoundError extends Error {
     constructor(message: string) {
       super(message);
-      this.name = 'NotFoundError';
+      this.name = "NotFoundError";
     }
   },
   QuotaExceededError: class QuotaExceededError extends Error {
     constructor(message: string) {
       super(message);
-      this.name = 'QuotaExceededError';
+      this.name = "QuotaExceededError";
     }
   },
 }));
 
-import { query, queryOne } from '../db.js';
-import * as docker from '../docker.js';
-import { environmentService } from '../services/EnvironmentService.js';
+import { query, queryOne } from "../db.js";
+import * as docker from "../docker.js";
+import { environmentService } from "../services/EnvironmentService.js";
 
-describe('SandboxService', () => {
-  const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
-  const mockEnvId = '456e4567-e89b-12d3-a456-426614174001';
-  const mockVersionId = '789e4567-e89b-12d3-a456-426614174002';
-  const mockSandboxId = 'abc4567-e89b-12d3-a456-426614174003';
+describe("SandboxService", () => {
+  const mockUserId = "123e4567-e89b-12d3-a456-426614174000";
+  const mockEnvId = "456e4567-e89b-12d3-a456-426614174001";
+  const mockVersionId = "789e4567-e89b-12d3-a456-426614174002";
+  const mockSandboxId = "abc4567-e89b-12d3-a456-426614174003";
 
   const mockEnvironment = {
     id: mockEnvId,
-    name: 'test-env',
+    name: "test-env",
     currentVersionId: mockVersionId,
     version: {
       id: mockVersionId,
       version: 1,
-      image: 'nginx:alpine',
+      image: "nginx:alpine",
       cpu: 2,
       memory: 512,
       ports: [{ container: 80, host: 8080 }],
-      env: { NODE_ENV: 'production' },
+      env: { NODE_ENV: "production" },
       secrets: [],
       mounts: {},
       createdAt: new Date().toISOString(),
@@ -71,11 +71,11 @@ describe('SandboxService', () => {
     id: mockVersionId,
     environmentId: mockEnvId,
     version: 1,
-    image: 'nginx:alpine',
+    image: "nginx:alpine",
     cpu: 2,
     memory: 512,
     ports: [{ container: 80, host: 8080 }],
-    env: { NODE_ENV: 'production' },
+    env: { NODE_ENV: "production" },
     secrets: {},
     mounts: {},
     createdAt: new Date(),
@@ -86,10 +86,10 @@ describe('SandboxService', () => {
     user_id: mockUserId,
     environment_id: mockEnvId,
     environment_version_id: mockVersionId,
-    name: 'test-sandbox',
-    container_id: 'container123',
-    status: 'running',
-    phase: 'healthy',
+    name: "test-sandbox",
+    container_id: "container123",
+    status: "running",
+    phase: "healthy",
     ports: [{ container: 80, host: 8080 }],
     created_at: new Date(),
     started_at: new Date(),
@@ -101,46 +101,46 @@ describe('SandboxService', () => {
     vi.clearAllMocks();
   });
 
-  describe('Sandbox Status Mapping', () => {
-    it('should map pending status correctly', () => {
-      const sandbox = { ...mockSandbox, status: 'pending', phase: 'creating' };
-      expect(sandbox.status).toBe('pending');
-      expect(sandbox.phase).toBe('creating');
+  describe("Sandbox Status Mapping", () => {
+    it("should map pending status correctly", () => {
+      const sandbox = { ...mockSandbox, status: "pending", phase: "creating" };
+      expect(sandbox.status).toBe("pending");
+      expect(sandbox.phase).toBe("creating");
     });
 
-    it('should map running status correctly', () => {
-      const sandbox = { ...mockSandbox, status: 'running', phase: 'healthy' };
-      expect(sandbox.status).toBe('running');
-      expect(sandbox.phase).toBe('healthy');
+    it("should map running status correctly", () => {
+      const sandbox = { ...mockSandbox, status: "running", phase: "healthy" };
+      expect(sandbox.status).toBe("running");
+      expect(sandbox.phase).toBe("healthy");
     });
 
-    it('should map stopped status correctly', () => {
-      const sandbox = { ...mockSandbox, status: 'stopped', phase: 'stopped' };
-      expect(sandbox.status).toBe('stopped');
-      expect(sandbox.phase).toBe('stopped');
+    it("should map stopped status correctly", () => {
+      const sandbox = { ...mockSandbox, status: "stopped", phase: "stopped" };
+      expect(sandbox.status).toBe("stopped");
+      expect(sandbox.phase).toBe("stopped");
     });
 
-    it('should map error status correctly', () => {
-      const sandbox = { ...mockSandbox, status: 'error', phase: 'failed' };
-      expect(sandbox.status).toBe('error');
-      expect(sandbox.phase).toBe('failed');
+    it("should map error status correctly", () => {
+      const sandbox = { ...mockSandbox, status: "error", phase: "failed" };
+      expect(sandbox.status).toBe("error");
+      expect(sandbox.phase).toBe("failed");
     });
   });
 
-  describe('Sandbox Response Format', () => {
-    it('should format sandbox response with endpoints', () => {
+  describe("Sandbox Response Format", () => {
+    it("should format sandbox response with endpoints", () => {
       const sandbox = { ...mockSandbox };
-      const endpoints = sandbox.ports.map((p: { container: number; host: number }) => ({
-        port: p.host,
-        url: `http://localhost:${p.host}`,
-      }));
+      const endpoints = sandbox.ports.map(
+        (p: { container: number; host: number }) => ({
+          port: p.host,
+          url: `http://localhost:${p.host}`,
+        }),
+      );
 
-      expect(endpoints).toEqual([
-        { port: 8080, url: 'http://localhost:8080' },
-      ]);
+      expect(endpoints).toEqual([{ port: 8080, url: "http://localhost:8080" }]);
     });
 
-    it('should include timestamps in ISO format', () => {
+    it("should include timestamps in ISO format", () => {
       const sandbox = { ...mockSandbox };
       const response = {
         id: sandbox.id,
@@ -155,15 +155,15 @@ describe('SandboxService', () => {
     });
   });
 
-  describe('Quota Validation', () => {
-    it('should enforce max sandboxes per user', () => {
+  describe("Quota Validation", () => {
+    it("should enforce max sandboxes per user", () => {
       const maxSandboxes = 10;
       const currentCount = 10;
 
       expect(currentCount >= maxSandboxes).toBe(true);
     });
 
-    it('should allow creation under quota', () => {
+    it("should allow creation under quota", () => {
       const maxSandboxes = 10;
       const currentCount = 5;
 
@@ -171,8 +171,8 @@ describe('SandboxService', () => {
     });
   });
 
-  describe('TTL Handling', () => {
-    it('should calculate expiry from TTL seconds', () => {
+  describe("TTL Handling", () => {
+    it("should calculate expiry from TTL seconds", () => {
       const ttlSeconds = 3600; // 1 hour
       const now = Date.now();
       const expiresAt = new Date(now + ttlSeconds * 1000);
@@ -181,16 +181,18 @@ describe('SandboxService', () => {
       expect(expiresAt.getTime() - now).toBeCloseTo(ttlSeconds * 1000, -2);
     });
 
-    it('should not set expiry when TTL is not provided', () => {
+    it("should not set expiry when TTL is not provided", () => {
       const ttlSeconds = undefined;
-      const expiresAt = ttlSeconds ? new Date(Date.now() + ttlSeconds * 1000) : null;
+      const expiresAt = ttlSeconds
+        ? new Date(Date.now() + ttlSeconds * 1000)
+        : null;
 
       expect(expiresAt).toBeNull();
     });
   });
 
-  describe('Container Configuration', () => {
-    it('should configure resource limits correctly', () => {
+  describe("Container Configuration", () => {
+    it("should configure resource limits correctly", () => {
       const config = {
         cpu: 2,
         memory: 512,
@@ -208,21 +210,21 @@ describe('SandboxService', () => {
       expect(hostConfig.MemorySwap).toBe(hostConfig.Memory); // No swap
     });
 
-    it('should format environment variables correctly', () => {
+    it("should format environment variables correctly", () => {
       const env = {
-        NODE_ENV: 'production',
-        PORT: '3000',
-        SECRET_KEY: 'abc123',
+        NODE_ENV: "production",
+        PORT: "3000",
+        SECRET_KEY: "abc123",
       };
 
       const envArray = Object.entries(env).map(([k, v]) => `${k}=${v}`);
 
-      expect(envArray).toContain('NODE_ENV=production');
-      expect(envArray).toContain('PORT=3000');
-      expect(envArray).toContain('SECRET_KEY=abc123');
+      expect(envArray).toContain("NODE_ENV=production");
+      expect(envArray).toContain("PORT=3000");
+      expect(envArray).toContain("SECRET_KEY=abc123");
     });
 
-    it('should configure port mappings correctly', () => {
+    it("should configure port mappings correctly", () => {
       const ports = [
         { container: 80, host: 8080 },
         { container: 443, host: 8443 },
@@ -237,14 +239,14 @@ describe('SandboxService', () => {
         portBindings[containerPort] = [{ HostPort: String(port.host) }];
       }
 
-      expect(exposedPorts['80/tcp']).toEqual({});
-      expect(portBindings['80/tcp']).toEqual([{ HostPort: '8080' }]);
-      expect(portBindings['443/tcp']).toEqual([{ HostPort: '8443' }]);
+      expect(exposedPorts["80/tcp"]).toEqual({});
+      expect(portBindings["80/tcp"]).toEqual([{ HostPort: "8080" }]);
+      expect(portBindings["443/tcp"]).toEqual([{ HostPort: "8443" }]);
     });
   });
 
-  describe('Idempotency', () => {
-    it('should use (userId, environmentId, name) as idempotency key', () => {
+  describe("Idempotency", () => {
+    it("should use (userId, environmentId, name) as idempotency key", () => {
       const key1 = `${mockUserId}-${mockEnvId}-test-sandbox`;
       const key2 = `${mockUserId}-${mockEnvId}-test-sandbox`;
       const key3 = `${mockUserId}-${mockEnvId}-different-sandbox`;

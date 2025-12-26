@@ -1,17 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../api';
-import type { PortMapping } from '../types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../api";
+import type { PortMapping } from "../types";
 
 export function useEnvironments() {
   return useQuery({
-    queryKey: ['environments'],
+    queryKey: ["environments"],
     queryFn: () => api.listEnvironments(),
   });
 }
 
 export function useEnvironment(id: string | undefined) {
   return useQuery({
-    queryKey: ['environments', id],
+    queryKey: ["environments", id],
     queryFn: () => api.getEnvironment(id!),
     enabled: !!id,
   });
@@ -30,7 +30,7 @@ export function useCreateEnvironment() {
       env?: Record<string, string>;
     }) => api.createEnvironment(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
+      queryClient.invalidateQueries({ queryKey: ["environments"] });
     },
   });
 }
@@ -53,8 +53,8 @@ export function useUpdateEnvironment() {
       }>;
     }) => api.updateEnvironment(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
-      queryClient.invalidateQueries({ queryKey: ['environments', id] });
+      queryClient.invalidateQueries({ queryKey: ["environments"] });
+      queryClient.invalidateQueries({ queryKey: ["environments", id] });
     },
   });
 }
@@ -65,7 +65,7 @@ export function useDeleteEnvironment() {
   return useMutation({
     mutationFn: (id: string) => api.deleteEnvironment(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
+      queryClient.invalidateQueries({ queryKey: ["environments"] });
     },
   });
 }
@@ -84,7 +84,7 @@ export function useSetSecret() {
       value: string;
     }) => api.setSecret(envId, key, value),
     onSuccess: (_, { envId }) => {
-      queryClient.invalidateQueries({ queryKey: ['environments', envId] });
+      queryClient.invalidateQueries({ queryKey: ["environments", envId] });
     },
   });
 }

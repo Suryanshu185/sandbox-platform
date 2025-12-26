@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { Terminal as TerminalIcon, Send } from 'lucide-react';
-import { api } from '../api';
+import { useState, useRef, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Terminal as TerminalIcon, Send } from "lucide-react";
+import { api } from "../api";
 
 interface TerminalProps {
   sandboxId: string;
@@ -16,7 +16,7 @@ interface HistoryEntry {
 }
 
 export function Terminal({ sandboxId, isRunning }: TerminalProps) {
-  const [command, setCommand] = useState('');
+  const [command, setCommand] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -29,21 +29,21 @@ export function Terminal({ sandboxId, isRunning }: TerminalProps) {
       setHistory((prev) => [
         ...prev,
         {
-          command: variables.join(' '),
+          command: variables.join(" "),
           output: result.output,
           exitCode: result.exitCode,
           timestamp: new Date(),
         },
       ]);
-      setCommandHistory((prev) => [...prev, variables.join(' ')]);
+      setCommandHistory((prev) => [...prev, variables.join(" ")]);
       setHistoryIndex(-1);
     },
     onError: (error, variables) => {
       setHistory((prev) => [
         ...prev,
         {
-          command: variables.join(' '),
-          output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          command: variables.join(" "),
+          output: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           exitCode: 1,
           timestamp: new Date(),
         },
@@ -64,25 +64,26 @@ export function Terminal({ sandboxId, isRunning }: TerminalProps) {
     // Parse command into array (simple shell-like splitting)
     const parts = command.trim().split(/\s+/);
     execMutation.mutate(parts);
-    setCommand('');
+    setCommand("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowUp') {
+    if (e.key === "ArrowUp") {
       e.preventDefault();
       if (commandHistory.length === 0) return;
-      const newIndex = historyIndex === -1
-        ? commandHistory.length - 1
-        : Math.max(0, historyIndex - 1);
+      const newIndex =
+        historyIndex === -1
+          ? commandHistory.length - 1
+          : Math.max(0, historyIndex - 1);
       setHistoryIndex(newIndex);
       setCommand(commandHistory[newIndex]);
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
       if (historyIndex === -1) return;
       const newIndex = historyIndex + 1;
       if (newIndex >= commandHistory.length) {
         setHistoryIndex(-1);
-        setCommand('');
+        setCommand("");
       } else {
         setHistoryIndex(newIndex);
         setCommand(commandHistory[newIndex]);
@@ -119,9 +120,11 @@ export function Terminal({ sandboxId, isRunning }: TerminalProps) {
               <span className="text-white">{entry.command}</span>
             </div>
             {entry.output && (
-              <pre className={`mt-1 whitespace-pre-wrap ${
-                entry.exitCode !== 0 ? 'text-red-400' : 'text-gray-300'
-              }`}>
+              <pre
+                className={`mt-1 whitespace-pre-wrap ${
+                  entry.exitCode !== 0 ? "text-red-400" : "text-gray-300"
+                }`}
+              >
                 {entry.output}
               </pre>
             )}

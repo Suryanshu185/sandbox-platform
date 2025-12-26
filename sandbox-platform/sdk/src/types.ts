@@ -73,8 +73,19 @@ export interface UpdateEnvironmentParams {
 }
 
 // Sandbox types
-export type SandboxStatus = 'pending' | 'running' | 'stopped' | 'error' | 'expired';
-export type SandboxPhase = 'creating' | 'starting' | 'healthy' | 'stopping' | 'stopped' | 'failed';
+export type SandboxStatus =
+  | "pending"
+  | "running"
+  | "stopped"
+  | "error"
+  | "expired";
+export type SandboxPhase =
+  | "creating"
+  | "starting"
+  | "healthy"
+  | "stopping"
+  | "stopped"
+  | "failed";
 
 export interface Endpoint {
   port: number;
@@ -125,7 +136,7 @@ export interface ListSandboxesParams {
 
 // Log types
 export interface LogEntry {
-  type: 'stdout' | 'stderr';
+  type: "stdout" | "stderr";
   text: string;
   timestamp: string;
 }

@@ -1,7 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodError } from 'zod';
-import logger from '../logger.js';
-import { NotFoundError, QuotaExceededError } from '../services/EnvironmentService.js';
+import { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
+import logger from "../logger.js";
+import {
+  NotFoundError,
+  QuotaExceededError,
+} from "../services/EnvironmentService.js";
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -9,8 +12,13 @@ export interface AppError extends Error {
   details?: Record<string, unknown>;
 }
 
-export function errorHandler(err: AppError, req: Request, res: Response, _next: NextFunction): void {
-  const traceId = req.auth?.traceId || req.headers['x-trace-id'] || 'unknown';
+export function errorHandler(
+  err: AppError,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+): void {
+  const traceId = req.auth?.traceId || req.headers["x-trace-id"] || "unknown";
 
   // Log the error
   logger.error(
@@ -25,7 +33,7 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
       path: req.path,
       userId: req.auth?.userId,
     },
-    'Request error'
+    "Request error",
   );
 
   // Handle Zod validation errors
@@ -33,11 +41,11 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
     res.status(400).json({
       success: false,
       error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Invalid request data',
+        code: "VALIDATION_ERROR",
+        message: "Invalid request data",
         details: {
           errors: err.errors.map((e) => ({
-            path: e.path.join('.'),
+            path: e.path.join("."),
             message: e.message,
           })),
         },
@@ -51,7 +59,7 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
     res.status(404).json({
       success: false,
       error: {
-        code: 'NOT_FOUND',
+        code: "NOT_FOUND",
         message: err.message,
       },
     });
@@ -63,7 +71,7 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
     res.status(429).json({
       success: false,
       error: {
-        code: 'QUOTA_EXCEEDED',
+        code: "QUOTA_EXCEEDED",
         message: err.message,
       },
     });
@@ -71,12 +79,12 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
   }
 
   // Handle duplicate key errors (PostgreSQL)
-  if ((err as { code?: string }).code === '23505') {
+  if ((err as { code?: string }).code === "23505") {
     res.status(409).json({
       success: false,
       error: {
-        code: 'CONFLICT',
-        message: 'Resource already exists',
+        code: "CONFLICT",
+        message: "Resource already exists",
       },
     });
     return;
@@ -87,7 +95,7 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
     res.status(err.statusCode).json({
       success: false,
       error: {
-        code: err.code || 'ERROR',
+        code: err.code || "ERROR",
         message: err.message,
         details: err.details,
       },
@@ -99,8 +107,11 @@ export function errorHandler(err: AppError, req: Request, res: Response, _next: 
   res.status(500).json({
     success: false,
     error: {
-      code: 'INTERNAL_ERROR',
-      message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message,
+      code: "INTERNAL_ERROR",
+      message:
+        process.env.NODE_ENV === "production"
+          ? "An unexpected error occurred"
+          : err.message,
     },
   });
 }
@@ -110,7 +121,7 @@ export function notFoundHandler(req: Request, res: Response): void {
   res.status(404).json({
     success: false,
     error: {
-      code: 'NOT_FOUND',
+      code: "NOT_FOUND",
       message: `Route ${req.method} ${req.path} not found`,
     },
   });

@@ -1,4 +1,4 @@
-export { SandboxClient, SandboxApiError } from './client';
+export { SandboxClient, SandboxApiError } from "./client";
 export type {
   ApiResponse,
   User,
@@ -19,4 +19,4 @@ export type {
   ContainerMetrics,
   ExecResult,
   SandboxClientConfig,
-} from './types';
+} from "./types";

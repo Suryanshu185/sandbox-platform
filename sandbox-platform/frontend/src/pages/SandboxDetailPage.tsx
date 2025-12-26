@@ -1,5 +1,14 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Square, RotateCw, Trash2, Copy, ExternalLink, Clock } from 'lucide-react';
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Play,
+  Square,
+  RotateCw,
+  Trash2,
+  Copy,
+  ExternalLink,
+  Clock,
+} from "lucide-react";
 import {
   useSandbox,
   useStartSandbox,
@@ -7,15 +16,15 @@ import {
   useRestartSandbox,
   useDestroySandbox,
   useReplicateSandbox,
-} from '../hooks/useSandboxes';
-import { useAuth } from '../hooks/useAuth';
-import { Button } from '../components/Button';
-import { Card, CardHeader } from '../components/Card';
-import { StatusBadge, PhaseBadge } from '../components/Badge';
-import { LogViewer } from '../components/LogViewer';
-import { ProvisioningProgress } from '../components/ProvisioningProgress';
-import { MetricsDisplay } from '../components/MetricsDisplay';
-import { InteractiveTerminal } from '../components/InteractiveTerminal';
+} from "../hooks/useSandboxes";
+import { useAuth } from "../hooks/useAuth";
+import { Button } from "../components/Button";
+import { Card, CardHeader } from "../components/Card";
+import { StatusBadge, PhaseBadge } from "../components/Badge";
+import { LogViewer } from "../components/LogViewer";
+import { ProvisioningProgress } from "../components/ProvisioningProgress";
+import { MetricsDisplay } from "../components/MetricsDisplay";
+import { InteractiveTerminal } from "../components/InteractiveTerminal";
 
 export function SandboxDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,14 +54,14 @@ export function SandboxDetailPage() {
     );
   }
 
-  const canStart = sandbox.status === 'stopped';
-  const canStop = sandbox.status === 'running';
-  const canRestart = sandbox.status === 'running';
+  const canStart = sandbox.status === "stopped";
+  const canStop = sandbox.status === "running";
+  const canRestart = sandbox.status === "running";
 
   const handleDestroy = async () => {
-    if (confirm('Are you sure you want to destroy this sandbox?')) {
+    if (confirm("Are you sure you want to destroy this sandbox?")) {
       await destroySandbox.mutateAsync(sandbox.id);
-      navigate('/');
+      navigate("/");
     }
   };
 
@@ -64,7 +73,7 @@ export function SandboxDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
@@ -73,8 +82,12 @@ export function SandboxDetailPage() {
         <Card className="mb-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{sandbox.name}</h1>
-              <p className="text-sm text-gray-500 font-mono mt-1">{sandbox.id}</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {sandbox.name}
+              </h1>
+              <p className="text-sm text-gray-500 font-mono mt-1">
+                {sandbox.id}
+              </p>
               <div className="flex items-center gap-3 mt-3">
                 <StatusBadge status={sandbox.status} />
                 <PhaseBadge phase={sandbox.phase} />
@@ -110,11 +123,19 @@ export function SandboxDetailPage() {
                   Restart
                 </Button>
               )}
-              <Button variant="ghost" onClick={handleReplicate} isLoading={replicateSandbox.isPending}>
+              <Button
+                variant="ghost"
+                onClick={handleReplicate}
+                isLoading={replicateSandbox.isPending}
+              >
                 <Copy className="w-4 h-4 mr-2" />
                 Clone
               </Button>
-              <Button variant="danger" onClick={handleDestroy} isLoading={destroySandbox.isPending}>
+              <Button
+                variant="danger"
+                onClick={handleDestroy}
+                isLoading={destroySandbox.isPending}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Destroy
               </Button>
@@ -123,7 +144,10 @@ export function SandboxDetailPage() {
         </Card>
 
         {/* Provisioning Progress */}
-        {(sandbox.status === 'pending' || sandbox.phase === 'creating' || sandbox.phase === 'starting' || sandbox.status === 'error') && (
+        {(sandbox.status === "pending" ||
+          sandbox.phase === "creating" ||
+          sandbox.phase === "starting" ||
+          sandbox.status === "error") && (
           <div className="mb-6">
             <ProvisioningProgress
               status={sandbox.status}
@@ -138,7 +162,10 @@ export function SandboxDetailPage() {
         {/* Endpoints */}
         {sandbox.endpoints.length > 0 && (
           <Card className="mb-6">
-            <CardHeader title="Endpoints" description="Access your sandbox services" />
+            <CardHeader
+              title="Endpoints"
+              description="Access your sandbox services"
+            />
             <div className="space-y-2">
               {sandbox.endpoints.map((endpoint) => (
                 <div
@@ -169,7 +196,10 @@ export function SandboxDetailPage() {
             title="Resource Metrics"
             description="Real-time CPU, memory, network, and I/O usage"
           />
-          <MetricsDisplay sandboxId={sandbox.id} isRunning={sandbox.status === 'running'} />
+          <MetricsDisplay
+            sandboxId={sandbox.id}
+            isRunning={sandbox.status === "running"}
+          />
         </Card>
 
         {/* Terminal */}
@@ -180,7 +210,7 @@ export function SandboxDetailPage() {
           />
           <InteractiveTerminal
             sandboxId={sandbox.id}
-            isRunning={sandbox.status === 'running'}
+            isRunning={sandbox.status === "running"}
             token={token}
           />
         </Card>
@@ -221,7 +251,10 @@ export function SandboxDetailPage() {
 
         {/* Logs */}
         <Card>
-          <CardHeader title="Logs" description="Live log stream from your sandbox" />
+          <CardHeader
+            title="Logs"
+            description="Live log stream from your sandbox"
+          />
           <LogViewer sandboxId={sandbox.id} maxHeight="500px" />
         </Card>
       </div>
@@ -239,12 +272,16 @@ interface TimelineItemProps {
 function TimelineItem({ label, timestamp, icon, isFuture }: TimelineItemProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`p-2 rounded-full ${isFuture ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600'}`}>
+      <div
+        className={`p-2 rounded-full ${isFuture ? "bg-yellow-100 text-yellow-600" : "bg-gray-100 text-gray-600"}`}
+      >
         {icon}
       </div>
       <div>
         <p className="text-sm font-medium text-gray-900">{label}</p>
-        <p className="text-xs text-gray-500">{new Date(timestamp).toLocaleString()}</p>
+        <p className="text-xs text-gray-500">
+          {new Date(timestamp).toLocaleString()}
+        </p>
       </div>
     </div>
   );

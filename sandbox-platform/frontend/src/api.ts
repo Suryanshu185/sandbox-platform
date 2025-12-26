@@ -8,18 +8,18 @@ import type {
   PortMapping,
   ContainerMetrics,
   ExecResult,
-} from './types';
+} from "./types";
 
-const API_BASE = '/api';
+const API_BASE = "/api";
 
 // Hash password client-side before sending to server
 // This ensures plain-text password never appears in network requests
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 class ApiClient {
@@ -31,15 +31,15 @@ class ApiClient {
 
   private async request<T>(
     path: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...((options.headers as Record<string, string>) || {}),
     };
 
     if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+      headers["Authorization"] = `Bearer ${this.token}`;
     }
 
     const response = await fetch(`${API_BASE}${path}`, {
@@ -50,47 +50,53 @@ class ApiClient {
     const data: ApiResponse<T> = await response.json();
 
     if (!data.success) {
-      throw new Error(data.error?.message || 'An error occurred');
+      throw new Error(data.error?.message || "An error occurred");
     }
 
     return data.data as T;
   }
 
   // Auth
-  async signup(email: string, password: string): Promise<{ user: User; token: string }> {
+  async signup(
+    email: string,
+    password: string,
+  ): Promise<{ user: User; token: string }> {
     const hashedPassword = await hashPassword(password);
-    return this.request('/auth/signup', {
-      method: 'POST',
+    return this.request("/auth/signup", {
+      method: "POST",
       body: JSON.stringify({ email, password: hashedPassword }),
     });
   }
 
-  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ user: User; token: string }> {
     const hashedPassword = await hashPassword(password);
-    return this.request('/auth/login', {
-      method: 'POST',
+    return this.request("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password: hashedPassword }),
     });
   }
 
   async getMe(): Promise<User> {
-    return this.request('/auth/me');
+    return this.request("/auth/me");
   }
 
   // API Keys
   async createApiKey(name: string): Promise<ApiKey> {
-    return this.request('/api-keys', {
-      method: 'POST',
+    return this.request("/api-keys", {
+      method: "POST",
       body: JSON.stringify({ name }),
     });
   }
 
   async listApiKeys(): Promise<ApiKey[]> {
-    return this.request('/api-keys');
+    return this.request("/api-keys");
   }
 
   async revokeApiKey(id: string): Promise<void> {
-    return this.request(`/api-keys/${id}`, { method: 'DELETE' });
+    return this.request(`/api-keys/${id}`, { method: "DELETE" });
   }
 
   // Environments
@@ -102,14 +108,14 @@ class ApiClient {
     ports?: PortMapping[];
     env?: Record<string, string>;
   }): Promise<Environment> {
-    return this.request('/environments', {
-      method: 'POST',
+    return this.request("/environments", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   async listEnvironments(): Promise<Environment[]> {
-    return this.request('/environments');
+    return this.request("/environments");
   }
 
   async getEnvironment(id: string): Promise<Environment> {
@@ -124,28 +130,28 @@ class ApiClient {
       memory: number;
       ports: PortMapping[];
       env: Record<string, string>;
-    }>
+    }>,
   ): Promise<Environment> {
     return this.request(`/environments/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
   async deleteEnvironment(id: string): Promise<void> {
-    return this.request(`/environments/${id}`, { method: 'DELETE' });
+    return this.request(`/environments/${id}`, { method: "DELETE" });
   }
 
   async setSecret(envId: string, key: string, value: string): Promise<void> {
     return this.request(`/environments/${envId}/secrets`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ key, value }),
     });
   }
 
   async deleteSecret(envId: string, key: string): Promise<void> {
     return this.request(`/environments/${envId}/secrets/${key}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -160,8 +166,8 @@ class ApiClient {
       ports?: PortMapping[];
     };
   }): Promise<Sandbox> {
-    return this.request('/sandboxes', {
-      method: 'POST',
+    return this.request("/sandboxes", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
@@ -171,11 +177,12 @@ class ApiClient {
     environmentId?: string;
   }): Promise<Sandbox[]> {
     const params = new URLSearchParams();
-    if (filters?.status) params.set('status', filters.status);
-    if (filters?.environmentId) params.set('environmentId', filters.environmentId);
+    if (filters?.status) params.set("status", filters.status);
+    if (filters?.environmentId)
+      params.set("environmentId", filters.environmentId);
 
     const query = params.toString();
-    return this.request(`/sandboxes${query ? `?${query}` : ''}`);
+    return this.request(`/sandboxes${query ? `?${query}` : ""}`);
   }
 
   async getSandbox(id: string): Promise<Sandbox> {
@@ -183,19 +190,19 @@ class ApiClient {
   }
 
   async startSandbox(id: string): Promise<Sandbox> {
-    return this.request(`/sandboxes/${id}/start`, { method: 'POST' });
+    return this.request(`/sandboxes/${id}/start`, { method: "POST" });
   }
 
   async stopSandbox(id: string): Promise<Sandbox> {
-    return this.request(`/sandboxes/${id}/stop`, { method: 'POST' });
+    return this.request(`/sandboxes/${id}/stop`, { method: "POST" });
   }
 
   async restartSandbox(id: string): Promise<Sandbox> {
-    return this.request(`/sandboxes/${id}/restart`, { method: 'POST' });
+    return this.request(`/sandboxes/${id}/restart`, { method: "POST" });
   }
 
   async destroySandbox(id: string): Promise<void> {
-    return this.request(`/sandboxes/${id}`, { method: 'DELETE' });
+    return this.request(`/sandboxes/${id}`, { method: "DELETE" });
   }
 
   async replicateSandbox(
@@ -206,10 +213,10 @@ class ApiClient {
         env?: Record<string, string>;
         ports?: PortMapping[];
       };
-    }
+    },
   ): Promise<Sandbox> {
     return this.request(`/sandboxes/${id}/replicate`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data || {}),
     });
   }
@@ -224,14 +231,14 @@ class ApiClient {
 
   async execInSandbox(id: string, command: string[]): Promise<ExecResult> {
     return this.request(`/sandboxes/${id}/exec`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ command }),
     });
   }
 
   // WebSocket for log streaming
   createLogStream(sandboxId: string): WebSocket {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws/sandboxes/${sandboxId}/logs?token=${this.token}`;
     return new WebSocket(wsUrl);
   }

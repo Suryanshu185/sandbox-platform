@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Cpu, HardDrive, Network, Activity } from 'lucide-react';
-import { api } from '../api';
-import type { ContainerMetrics } from '../types';
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Cpu, HardDrive, Network, Activity } from "lucide-react";
+import { api } from "../api";
+import type { ContainerMetrics } from "../types";
 
 interface MetricsDisplayProps {
   sandboxId: string;
@@ -10,9 +10,9 @@ interface MetricsDisplayProps {
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
@@ -32,7 +32,7 @@ export function MetricsDisplay({ sandboxId, isRunning }: MetricsDisplayProps) {
   const [metrics, setMetrics] = useState<ContainerMetrics | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['sandbox-metrics', sandboxId],
+    queryKey: ["sandbox-metrics", sandboxId],
     queryFn: () => api.getSandboxMetrics(sandboxId),
     enabled: isRunning,
     refetchInterval: 2000, // Refresh every 2 seconds
@@ -98,7 +98,8 @@ export function MetricsDisplay({ sandboxId, isRunning }: MetricsDisplayProps) {
         </div>
         <ProgressBar value={metrics.memory.usagePercent} color="bg-green-500" />
         <div className="text-xs text-gray-500 mt-1">
-          {formatBytes(metrics.memory.usageBytes)} / {formatBytes(metrics.memory.limitBytes)}
+          {formatBytes(metrics.memory.usageBytes)} /{" "}
+          {formatBytes(metrics.memory.limitBytes)}
         </div>
       </div>
 
@@ -111,11 +112,15 @@ export function MetricsDisplay({ sandboxId, isRunning }: MetricsDisplayProps) {
         <div className="flex justify-between text-sm">
           <div>
             <span className="text-gray-500">RX:</span>
-            <span className="font-mono ml-1">{formatBytes(metrics.network.rxBytes)}</span>
+            <span className="font-mono ml-1">
+              {formatBytes(metrics.network.rxBytes)}
+            </span>
           </div>
           <div>
             <span className="text-gray-500">TX:</span>
-            <span className="font-mono ml-1">{formatBytes(metrics.network.txBytes)}</span>
+            <span className="font-mono ml-1">
+              {formatBytes(metrics.network.txBytes)}
+            </span>
           </div>
         </div>
       </div>
@@ -129,11 +134,15 @@ export function MetricsDisplay({ sandboxId, isRunning }: MetricsDisplayProps) {
         <div className="flex justify-between text-sm">
           <div>
             <span className="text-gray-500">Read:</span>
-            <span className="font-mono ml-1">{formatBytes(metrics.blockIO.readBytes)}</span>
+            <span className="font-mono ml-1">
+              {formatBytes(metrics.blockIO.readBytes)}
+            </span>
           </div>
           <div>
             <span className="text-gray-500">Write:</span>
-            <span className="font-mono ml-1">{formatBytes(metrics.blockIO.writeBytes)}</span>
+            <span className="font-mono ml-1">
+              {formatBytes(metrics.blockIO.writeBytes)}
+            </span>
           </div>
         </div>
       </div>

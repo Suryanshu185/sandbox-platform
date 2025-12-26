@@ -1,7 +1,12 @@
-import { query, queryOne, transaction } from '../db.js';
-import logger from '../logger.js';
-import { secretsService } from './SecretsService.js';
-import type { Environment, EnvironmentVersion, PortMapping, EnvironmentResponse } from '../types.js';
+import { query, queryOne, transaction } from "../db.js";
+import logger from "../logger.js";
+import { secretsService } from "./SecretsService.js";
+import type {
+  Environment,
+  EnvironmentVersion,
+  PortMapping,
+  EnvironmentResponse,
+} from "../types.js";
 
 interface DbEnvironment {
   id: string;
@@ -46,22 +51,24 @@ class EnvironmentService {
       ports?: PortMapping[];
       env?: Record<string, string>;
       mounts?: Record<string, string>;
-    }
+    },
   ): Promise<{ environment: Environment; version: EnvironmentVersion }> {
     // Validate: either image or dockerfile must be provided
     if (!data.image && !data.dockerfile) {
-      throw new Error('Either image or dockerfile must be provided');
+      throw new Error("Either image or dockerfile must be provided");
     }
 
     // Check quota
     const countResult = await queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM environments WHERE user_id = $1',
-      [userId]
+      "SELECT COUNT(*) as count FROM environments WHERE user_id = $1",
+      [userId],
     );
-    const count = parseInt(countResult?.count ?? '0', 10);
+    const count = parseInt(countResult?.count ?? "0", 10);
 
     if (count >= MAX_ENVIRONMENTS_PER_USER) {
-      throw new QuotaExceededError(`Maximum ${MAX_ENVIRONMENTS_PER_USER} environments allowed per user`);
+      throw new QuotaExceededError(
+        `Maximum ${MAX_ENVIRONMENTS_PER_USER} environments allowed per user`,
+      );
     }
 
     return transaction(async (client) => {
@@ -70,12 +77,12 @@ class EnvironmentService {
         `INSERT INTO environments (user_id, name)
          VALUES ($1, $2)
          RETURNING id, user_id, name, current_version_id, created_at, updated_at`,
-        [userId, data.name]
+        [userId, data.name],
       );
 
       const envRow = envResult.rows[0];
       if (!envRow) {
-        throw new Error('Failed to create environment');
+        throw new Error("Failed to create environment");
       }
 
       // Create initial version
@@ -95,34 +102,48 @@ class EnvironmentService {
           JSON.stringify(data.env ?? {}),
           JSON.stringify({}), // No secrets initially
           JSON.stringify(data.mounts ?? {}),
-        ]
+        ],
       );
 
       const versionRow = versionResult.rows[0];
       if (!versionRow) {
-        throw new Error('Failed to create environment version');
+        throw new Error("Failed to create environment version");
       }
 
       // Update current version
-      await client.query('UPDATE environments SET current_version_id = $1 WHERE id = $2', [
-        versionRow.id,
-        envRow.id,
-      ]);
+      await client.query(
+        "UPDATE environments SET current_version_id = $1 WHERE id = $2",
+        [versionRow.id, envRow.id],
+      );
 
-      logger.info({ userId, environmentId: envRow.id, version: 1, hasDockerfile: !!data.dockerfile }, 'Environment created');
+      logger.info(
+        {
+          userId,
+          environmentId: envRow.id,
+          version: 1,
+          hasDockerfile: !!data.dockerfile,
+        },
+        "Environment created",
+      );
 
       return {
-        environment: this.mapEnvironment({ ...envRow, current_version_id: versionRow.id }),
+        environment: this.mapEnvironment({
+          ...envRow,
+          current_version_id: versionRow.id,
+        }),
         version: this.mapVersion(versionRow),
       };
     });
   }
 
   // Get environment by ID (scoped to user)
-  async getEnvironment(userId: string, environmentId: string): Promise<EnvironmentResponse | null> {
+  async getEnvironment(
+    userId: string,
+    environmentId: string,
+  ): Promise<EnvironmentResponse | null> {
     const envRow = await queryOne<DbEnvironment>(
-      'SELECT id, user_id, name, current_version_id, created_at, updated_at FROM environments WHERE id = $1 AND user_id = $2',
-      [environmentId, userId]
+      "SELECT id, user_id, name, current_version_id, created_at, updated_at FROM environments WHERE id = $1 AND user_id = $2",
+      [environmentId, userId],
     );
 
     if (!envRow) {
@@ -134,7 +155,7 @@ class EnvironmentService {
       const versionRow = await queryOne<DbEnvironmentVersion>(
         `SELECT id, environment_id, version, image, dockerfile, build_files, cpu, memory, ports, env, secrets, mounts, created_at
          FROM environment_versions WHERE id = $1`,
-        [envRow.current_version_id]
+        [envRow.current_version_id],
       );
       if (versionRow) {
         version = this.mapVersion(versionRow);
@@ -151,7 +172,7 @@ class EnvironmentService {
        FROM environments
        WHERE user_id = $1
        ORDER BY created_at DESC`,
-      [userId]
+      [userId],
     );
 
     const results: EnvironmentResponse[] = [];
@@ -162,7 +183,7 @@ class EnvironmentService {
         const versionRow = await queryOne<DbEnvironmentVersion>(
           `SELECT id, environment_id, version, image, dockerfile, build_files, cpu, memory, ports, env, secrets, mounts, created_at
            FROM environment_versions WHERE id = $1`,
-          [envRow.current_version_id]
+          [envRow.current_version_id],
         );
         if (versionRow) {
           version = this.mapVersion(versionRow);
@@ -185,30 +206,30 @@ class EnvironmentService {
       ports?: PortMapping[];
       env?: Record<string, string>;
       mounts?: Record<string, string>;
-    }
+    },
   ): Promise<{ environment: Environment; version: EnvironmentVersion }> {
     return transaction(async (client) => {
       // Get current environment and version
       const envResult = await client.query<DbEnvironment>(
-        'SELECT id, user_id, name, current_version_id, created_at, updated_at FROM environments WHERE id = $1 AND user_id = $2 FOR UPDATE',
-        [environmentId, userId]
+        "SELECT id, user_id, name, current_version_id, created_at, updated_at FROM environments WHERE id = $1 AND user_id = $2 FOR UPDATE",
+        [environmentId, userId],
       );
 
       const envRow = envResult.rows[0];
       if (!envRow) {
-        throw new NotFoundError('Environment not found');
+        throw new NotFoundError("Environment not found");
       }
 
       // Get current version
       const currentVersionResult = await client.query<DbEnvironmentVersion>(
         `SELECT id, environment_id, version, image, cpu, memory, ports, env, secrets, mounts, created_at
          FROM environment_versions WHERE id = $1`,
-        [envRow.current_version_id]
+        [envRow.current_version_id],
       );
 
       const currentVersion = currentVersionResult.rows[0];
       if (!currentVersion) {
-        throw new Error('Environment version not found');
+        throw new Error("Environment version not found");
       }
 
       // Create new version
@@ -227,24 +248,30 @@ class EnvironmentService {
           JSON.stringify(data.env ?? currentVersion.env),
           JSON.stringify(currentVersion.secrets), // Keep existing secrets
           JSON.stringify(data.mounts ?? currentVersion.mounts),
-        ]
+        ],
       );
 
       const versionRow = versionResult.rows[0];
       if (!versionRow) {
-        throw new Error('Failed to create environment version');
+        throw new Error("Failed to create environment version");
       }
 
       // Update current version
-      await client.query('UPDATE environments SET current_version_id = $1, updated_at = NOW() WHERE id = $2', [
-        versionRow.id,
-        environmentId,
-      ]);
+      await client.query(
+        "UPDATE environments SET current_version_id = $1, updated_at = NOW() WHERE id = $2",
+        [versionRow.id, environmentId],
+      );
 
-      logger.info({ userId, environmentId, version: newVersion }, 'Environment updated');
+      logger.info(
+        { userId, environmentId, version: newVersion },
+        "Environment updated",
+      );
 
       return {
-        environment: this.mapEnvironment({ ...envRow, current_version_id: versionRow.id }),
+        environment: this.mapEnvironment({
+          ...envRow,
+          current_version_id: versionRow.id,
+        }),
         version: this.mapVersion(versionRow),
       };
     });
@@ -255,29 +282,29 @@ class EnvironmentService {
     userId: string,
     environmentId: string,
     key: string,
-    value: string
+    value: string,
   ): Promise<{ key: string; redacted: true }> {
     return transaction(async (client) => {
       // Get current environment
       const envResult = await client.query<DbEnvironment>(
-        'SELECT id, current_version_id FROM environments WHERE id = $1 AND user_id = $2 FOR UPDATE',
-        [environmentId, userId]
+        "SELECT id, current_version_id FROM environments WHERE id = $1 AND user_id = $2 FOR UPDATE",
+        [environmentId, userId],
       );
 
       const envRow = envResult.rows[0];
       if (!envRow || !envRow.current_version_id) {
-        throw new NotFoundError('Environment not found');
+        throw new NotFoundError("Environment not found");
       }
 
       // Get current version
       const versionResult = await client.query<DbEnvironmentVersion>(
-        'SELECT id, secrets FROM environment_versions WHERE id = $1',
-        [envRow.current_version_id]
+        "SELECT id, secrets FROM environment_versions WHERE id = $1",
+        [envRow.current_version_id],
       );
 
       const versionRow = versionResult.rows[0];
       if (!versionRow) {
-        throw new Error('Environment version not found');
+        throw new Error("Environment version not found");
       }
 
       // Encrypt the secret
@@ -287,33 +314,37 @@ class EnvironmentService {
       const secrets = versionRow.secrets ?? {};
       secrets[key] = encryptedValue;
 
-      await client.query('UPDATE environment_versions SET secrets = $1 WHERE id = $2', [
-        JSON.stringify(secrets),
-        versionRow.id,
-      ]);
+      await client.query(
+        "UPDATE environment_versions SET secrets = $1 WHERE id = $2",
+        [JSON.stringify(secrets), versionRow.id],
+      );
 
-      logger.info({ userId, environmentId, secretKey: key }, 'Secret set');
+      logger.info({ userId, environmentId, secretKey: key }, "Secret set");
 
       return { key, redacted: true as const };
     });
   }
 
   // Delete a secret
-  async deleteSecret(userId: string, environmentId: string, key: string): Promise<boolean> {
+  async deleteSecret(
+    userId: string,
+    environmentId: string,
+    key: string,
+  ): Promise<boolean> {
     return transaction(async (client) => {
       const envResult = await client.query<DbEnvironment>(
-        'SELECT id, current_version_id FROM environments WHERE id = $1 AND user_id = $2 FOR UPDATE',
-        [environmentId, userId]
+        "SELECT id, current_version_id FROM environments WHERE id = $1 AND user_id = $2 FOR UPDATE",
+        [environmentId, userId],
       );
 
       const envRow = envResult.rows[0];
       if (!envRow || !envRow.current_version_id) {
-        throw new NotFoundError('Environment not found');
+        throw new NotFoundError("Environment not found");
       }
 
       const versionResult = await client.query<DbEnvironmentVersion>(
-        'SELECT id, secrets FROM environment_versions WHERE id = $1',
-        [envRow.current_version_id]
+        "SELECT id, secrets FROM environment_versions WHERE id = $1",
+        [envRow.current_version_id],
       );
 
       const versionRow = versionResult.rows[0];
@@ -328,21 +359,23 @@ class EnvironmentService {
 
       delete secrets[key];
 
-      await client.query('UPDATE environment_versions SET secrets = $1 WHERE id = $2', [
-        JSON.stringify(secrets),
-        versionRow.id,
-      ]);
+      await client.query(
+        "UPDATE environment_versions SET secrets = $1 WHERE id = $2",
+        [JSON.stringify(secrets), versionRow.id],
+      );
 
-      logger.info({ userId, environmentId, secretKey: key }, 'Secret deleted');
+      logger.info({ userId, environmentId, secretKey: key }, "Secret deleted");
       return true;
     });
   }
 
   // Get decrypted secrets for a version (internal use only)
-  async getDecryptedSecrets(versionId: string): Promise<Record<string, string>> {
+  async getDecryptedSecrets(
+    versionId: string,
+  ): Promise<Record<string, string>> {
     const versionRow = await queryOne<DbEnvironmentVersion>(
-      'SELECT secrets FROM environment_versions WHERE id = $1',
-      [versionId]
+      "SELECT secrets FROM environment_versions WHERE id = $1",
+      [versionId],
     );
 
     if (!versionRow || !versionRow.secrets) {
@@ -357,21 +390,24 @@ class EnvironmentService {
     const row = await queryOne<DbEnvironmentVersion>(
       `SELECT id, environment_id, version, image, command, cpu, memory, ports, env, secrets, mounts, created_at
        FROM environment_versions WHERE id = $1`,
-      [versionId]
+      [versionId],
     );
 
     return row ? this.mapVersion(row) : null;
   }
 
   // Delete environment
-  async deleteEnvironment(userId: string, environmentId: string): Promise<boolean> {
-    const result = await query('DELETE FROM environments WHERE id = $1 AND user_id = $2 RETURNING id', [
-      environmentId,
-      userId,
-    ]);
+  async deleteEnvironment(
+    userId: string,
+    environmentId: string,
+  ): Promise<boolean> {
+    const result = await query(
+      "DELETE FROM environments WHERE id = $1 AND user_id = $2 RETURNING id",
+      [environmentId, userId],
+    );
 
     if (result.length > 0) {
-      logger.info({ userId, environmentId }, 'Environment deleted');
+      logger.info({ userId, environmentId }, "Environment deleted");
       return true;
     }
 
@@ -394,7 +430,7 @@ class EnvironmentService {
       id: row.id,
       environmentId: row.environment_id,
       version: row.version,
-      image: row.image || '',
+      image: row.image || "",
       dockerfile: row.dockerfile || undefined,
       buildFiles: row.build_files ?? {},
       command: row.command ?? undefined,
@@ -408,7 +444,10 @@ class EnvironmentService {
     };
   }
 
-  private toResponse(env: Environment, version?: EnvironmentVersion): EnvironmentResponse {
+  private toResponse(
+    env: Environment,
+    version?: EnvironmentVersion,
+  ): EnvironmentResponse {
     return {
       id: env.id,
       name: env.name,
@@ -422,7 +461,10 @@ class EnvironmentService {
             memory: version.memory,
             ports: version.ports,
             env: version.env,
-            secrets: Object.keys(version.secrets).map((key) => ({ key, redacted: true as const })),
+            secrets: Object.keys(version.secrets).map((key) => ({
+              key,
+              redacted: true as const,
+            })),
             mounts: version.mounts,
             createdAt: version.createdAt.toISOString(),
           }
@@ -436,14 +478,14 @@ class EnvironmentService {
 export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
   }
 }
 
 export class QuotaExceededError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'QuotaExceededError';
+    this.name = "QuotaExceededError";
   }
 }
 

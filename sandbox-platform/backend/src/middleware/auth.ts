@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import { authService } from '../services/AuthService.js';
-import type { AuthContext } from '../types.js';
+import { Request, Response, NextFunction } from "express";
+import { v4 as uuidv4 } from "uuid";
+import { authService } from "../services/AuthService.js";
+import type { AuthContext } from "../types.js";
 
 // Extend Express Request type
 declare global {
@@ -13,35 +13,42 @@ declare global {
 }
 
 // JWT or API Key authentication middleware
-export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const traceId = (req.headers['x-trace-id'] as string) || uuidv4();
+export async function authenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const traceId = (req.headers["x-trace-id"] as string) || uuidv4();
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
     res.status(401).json({
       success: false,
-      error: { code: 'UNAUTHORIZED', message: 'Authorization header required' },
+      error: { code: "UNAUTHORIZED", message: "Authorization header required" },
     });
     return;
   }
 
-  const [scheme, token] = authHeader.split(' ');
+  const [scheme, token] = authHeader.split(" ");
 
-  if (scheme !== 'Bearer' || !token) {
+  if (scheme !== "Bearer" || !token) {
     res.status(401).json({
       success: false,
-      error: { code: 'UNAUTHORIZED', message: 'Invalid authorization format. Use: Bearer <token>' },
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Invalid authorization format. Use: Bearer <token>",
+      },
     });
     return;
   }
 
   // Check if it's an API key (starts with sk_)
-  if (token.startsWith('sk_')) {
+  if (token.startsWith("sk_")) {
     const result = await authService.validateApiKey(token);
     if (!result) {
       res.status(401).json({
         success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Invalid API key' },
+        error: { code: "UNAUTHORIZED", message: "Invalid API key" },
       });
       return;
     }
@@ -57,7 +64,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     if (!payload) {
       res.status(401).json({
         success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token' },
+        error: { code: "UNAUTHORIZED", message: "Invalid or expired token" },
       });
       return;
     }
@@ -73,20 +80,24 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 }
 
 // Optional authentication (for routes that work with or without auth)
-export async function optionalAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const traceId = (req.headers['x-trace-id'] as string) || uuidv4();
+export async function optionalAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const traceId = (req.headers["x-trace-id"] as string) || uuidv4();
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    req.auth = { userId: '', traceId };
+    req.auth = { userId: "", traceId };
     next();
     return;
   }
 
-  const [scheme, token] = authHeader.split(' ');
+  const [scheme, token] = authHeader.split(" ");
 
-  if (scheme === 'Bearer' && token) {
-    if (token.startsWith('sk_')) {
+  if (scheme === "Bearer" && token) {
+    if (token.startsWith("sk_")) {
       const result = await authService.validateApiKey(token);
       if (result) {
         req.auth = {
@@ -108,7 +119,7 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
   }
 
   if (!req.auth) {
-    req.auth = { userId: '', traceId };
+    req.auth = { userId: "", traceId };
   }
 
   next();

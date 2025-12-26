@@ -1,12 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from './hooks/useAuth';
-import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { EnvironmentDetailPage } from './pages/EnvironmentDetailPage';
-import { SandboxDetailPage } from './pages/SandboxDetailPage';
-import { ApiKeysPage } from './pages/ApiKeysPage';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { LoginPage } from "./pages/LoginPage";
+import { SignupPage } from "./pages/SignupPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { EnvironmentDetailPage } from "./pages/EnvironmentDetailPage";
+import { SandboxDetailPage } from "./pages/SandboxDetailPage";
+import { ApiKeysPage } from "./pages/ApiKeysPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {

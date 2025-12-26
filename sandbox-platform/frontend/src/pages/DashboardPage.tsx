@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Box, Layers, Key, LogOut } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { useEnvironments, useCreateEnvironment, useDeleteEnvironment } from '../hooks/useEnvironments';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Box, Layers, Key, LogOut } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import {
+  useEnvironments,
+  useCreateEnvironment,
+  useDeleteEnvironment,
+} from "../hooks/useEnvironments";
 import {
   useSandboxes,
   useStartSandbox,
@@ -11,13 +15,13 @@ import {
   useDestroySandbox,
   useReplicateSandbox,
   useCreateSandbox,
-} from '../hooks/useSandboxes';
-import { Button } from '../components/Button';
-import { Card, CardHeader } from '../components/Card';
-import { SandboxCard } from '../components/SandboxCard';
-import { EnvironmentForm } from '../components/EnvironmentForm';
-import { Badge } from '../components/Badge';
-import type { Environment } from '../types';
+} from "../hooks/useSandboxes";
+import { Button } from "../components/Button";
+import { Card, CardHeader } from "../components/Card";
+import { SandboxCard } from "../components/SandboxCard";
+import { EnvironmentForm } from "../components/EnvironmentForm";
+import { Badge } from "../components/Badge";
+import type { Environment } from "../types";
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -37,7 +41,9 @@ export function DashboardPage() {
   const destroySandbox = useDestroySandbox();
   const replicateSandbox = useReplicateSandbox();
 
-  const handleCreateEnv = async (data: Parameters<typeof createEnv.mutateAsync>[0]) => {
+  const handleCreateEnv = async (
+    data: Parameters<typeof createEnv.mutateAsync>[0],
+  ) => {
     await createEnv.mutateAsync(data);
     setShowNewEnv(false);
   };
@@ -58,10 +64,16 @@ export function DashboardPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <Box className="w-6 h-6 text-primary-600" />
-              <span className="text-lg font-semibold text-gray-900">Sandbox Platform</span>
+              <span className="text-lg font-semibold text-gray-900">
+                Sandbox Platform
+              </span>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/api-keys')}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/api-keys")}
+              >
                 <Key className="w-4 h-4 mr-2" />
                 API Keys
               </Button>
@@ -81,7 +93,7 @@ export function DashboardPage() {
             <Card>
               <CardHeader
                 title="Environments"
-                description={`${environments.length} environment${environments.length !== 1 ? 's' : ''}`}
+                description={`${environments.length} environment${environments.length !== 1 ? "s" : ""}`}
                 action={
                   <Button size="sm" onClick={() => setShowNewEnv(true)}>
                     <Plus className="w-4 h-4 mr-1" />
@@ -115,7 +127,11 @@ export function DashboardPage() {
                       key={env.id}
                       environment={env}
                       isSelected={selectedEnvId === env.id}
-                      onSelect={() => setSelectedEnvId(selectedEnvId === env.id ? null : env.id)}
+                      onSelect={() =>
+                        setSelectedEnvId(
+                          selectedEnvId === env.id ? null : env.id,
+                        )
+                      }
                       onCreateSandbox={() => handleCreateSandbox(env.id)}
                       onDelete={() => deleteEnv.mutate(env.id)}
                       onClick={() => navigate(`/environments/${env.id}`)}
@@ -134,11 +150,15 @@ export function DashboardPage() {
                 description={
                   selectedEnvId
                     ? `Filtered by environment`
-                    : `${sandboxes.length} sandbox${sandboxes.length !== 1 ? 'es' : ''}`
+                    : `${sandboxes.length} sandbox${sandboxes.length !== 1 ? "es" : ""}`
                 }
                 action={
                   selectedEnvId && (
-                    <Button size="sm" variant="secondary" onClick={() => setSelectedEnvId(null)}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setSelectedEnvId(null)}
+                    >
                       Clear Filter
                     </Button>
                   )
@@ -151,7 +171,9 @@ export function DashboardPage() {
                 <div className="text-center py-8 text-gray-500">
                   <Box className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                   <p>No sandboxes yet</p>
-                  <p className="text-sm">Create a sandbox from an environment</p>
+                  <p className="text-sm">
+                    Create a sandbox from an environment
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -163,7 +185,9 @@ export function DashboardPage() {
                       onStop={() => stopSandbox.mutate(sandbox.id)}
                       onRestart={() => restartSandbox.mutate(sandbox.id)}
                       onDestroy={() => destroySandbox.mutate(sandbox.id)}
-                      onReplicate={() => replicateSandbox.mutate({ id: sandbox.id })}
+                      onReplicate={() =>
+                        replicateSandbox.mutate({ id: sandbox.id })
+                      }
                       onClick={() => navigate(`/sandboxes/${sandbox.id}`)}
                       isLoading={
                         startSandbox.isPending ||
@@ -203,14 +227,22 @@ function EnvironmentItem({
     <div
       className={`p-3 rounded-lg border transition-colors cursor-pointer ${
         isSelected
-          ? 'border-primary-500 bg-primary-50'
-          : 'border-gray-200 hover:border-gray-300'
+          ? "border-primary-500 bg-primary-50"
+          : "border-gray-200 hover:border-gray-300"
       }`}
       onClick={onSelect}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0" onClick={(e) => { e.stopPropagation(); onClick(); }}>
-          <h4 className="text-sm font-medium text-gray-900 truncate">{environment.name}</h4>
+        <div
+          className="flex-1 min-w-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+        >
+          <h4 className="text-sm font-medium text-gray-900 truncate">
+            {environment.name}
+          </h4>
           {environment.version && (
             <p className="text-xs text-gray-500 mt-1 font-mono truncate">
               {environment.version.image}
@@ -218,7 +250,9 @@ function EnvironmentItem({
           )}
         </div>
         {environment.version && (
-          <Badge variant="info" size="sm">v{environment.version.version}</Badge>
+          <Badge variant="info" size="sm">
+            v{environment.version.version}
+          </Badge>
         )}
       </div>
 

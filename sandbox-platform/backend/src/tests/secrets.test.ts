@@ -1,10 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from "vitest";
 
 // Create a fresh instance for testing
-import nacl from 'tweetnacl';
-import { encodeBase64, decodeBase64, encodeUTF8, decodeUTF8 } from 'tweetnacl-util';
+import nacl from "tweetnacl";
+import {
+  encodeBase64,
+  decodeBase64,
+  encodeUTF8,
+  decodeUTF8,
+} from "tweetnacl-util";
 
-describe('SecretsService', () => {
+describe("SecretsService", () => {
   let masterKey: Uint8Array;
 
   beforeEach(() => {
@@ -31,23 +36,23 @@ describe('SecretsService', () => {
     const plaintext = nacl.secretbox.open(ciphertext, nonce, masterKey);
 
     if (!plaintext) {
-      throw new Error('Decryption failed');
+      throw new Error("Decryption failed");
     }
 
     return encodeUTF8(plaintext);
   }
 
-  describe('encryption/decryption', () => {
-    it('should encrypt and decrypt a secret correctly', () => {
-      const original = 'my-super-secret-api-key-12345';
+  describe("encryption/decryption", () => {
+    it("should encrypt and decrypt a secret correctly", () => {
+      const original = "my-super-secret-api-key-12345";
       const encrypted = encrypt(original);
       const decrypted = decrypt(encrypted);
 
       expect(decrypted).toBe(original);
     });
 
-    it('should produce different ciphertext for same plaintext (due to random nonce)', () => {
-      const original = 'same-secret';
+    it("should produce different ciphertext for same plaintext (due to random nonce)", () => {
+      const original = "same-secret";
       const encrypted1 = encrypt(original);
       const encrypted2 = encrypt(original);
 
@@ -58,32 +63,32 @@ describe('SecretsService', () => {
       expect(decrypt(encrypted2)).toBe(original);
     });
 
-    it('should handle empty strings', () => {
-      const original = '';
+    it("should handle empty strings", () => {
+      const original = "";
       const encrypted = encrypt(original);
       const decrypted = decrypt(encrypted);
 
       expect(decrypted).toBe(original);
     });
 
-    it('should handle unicode characters', () => {
-      const original = 'secret-with-unicode-🔐-émojis';
+    it("should handle unicode characters", () => {
+      const original = "secret-with-unicode-🔐-émojis";
       const encrypted = encrypt(original);
       const decrypted = decrypt(encrypted);
 
       expect(decrypted).toBe(original);
     });
 
-    it('should handle long secrets', () => {
-      const original = 'x'.repeat(10000);
+    it("should handle long secrets", () => {
+      const original = "x".repeat(10000);
       const encrypted = encrypt(original);
       const decrypted = decrypt(encrypted);
 
       expect(decrypted).toBe(original);
     });
 
-    it('should fail to decrypt with wrong key', () => {
-      const original = 'secret';
+    it("should fail to decrypt with wrong key", () => {
+      const original = "secret";
       const encrypted = encrypt(original);
 
       // Try to decrypt with a different key
@@ -96,8 +101,8 @@ describe('SecretsService', () => {
       expect(result).toBeNull();
     });
 
-    it('should fail to decrypt corrupted ciphertext', () => {
-      const original = 'secret';
+    it("should fail to decrypt corrupted ciphertext", () => {
+      const original = "secret";
       const encrypted = encrypt(original);
 
       // Corrupt the ciphertext
@@ -112,12 +117,12 @@ describe('SecretsService', () => {
     });
   });
 
-  describe('multiple secrets', () => {
-    it('should encrypt and decrypt multiple secrets', () => {
+  describe("multiple secrets", () => {
+    it("should encrypt and decrypt multiple secrets", () => {
       const secrets: Record<string, string> = {
-        API_KEY: 'sk_live_12345',
-        DATABASE_URL: 'postgresql://user:pass@localhost/db',
-        JWT_SECRET: 'super-secret-jwt-key',
+        API_KEY: "sk_live_12345",
+        DATABASE_URL: "postgresql://user:pass@localhost/db",
+        JWT_SECRET: "super-secret-jwt-key",
       };
 
       const encrypted: Record<string, string> = {};
@@ -134,13 +139,13 @@ describe('SecretsService', () => {
     });
   });
 
-  describe('key generation', () => {
-    it('should generate a 32-byte key', () => {
+  describe("key generation", () => {
+    it("should generate a 32-byte key", () => {
       const key = nacl.randomBytes(nacl.secretbox.keyLength);
       expect(key.length).toBe(32);
     });
 
-    it('should generate unique keys', () => {
+    it("should generate unique keys", () => {
       const key1 = nacl.randomBytes(nacl.secretbox.keyLength);
       const key2 = nacl.randomBytes(nacl.secretbox.keyLength);
 
